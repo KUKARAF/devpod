@@ -9,8 +9,8 @@ nix-env -iA \
  nixpkgs.fzf \
  nixpkgs.ripgrep \
  nixpkgs.zoxide \
- nixpkgs.python3 \
- nixpkgs.vimPlugins.ctrlp-vim
+ nixpkgs.vimHugeX
+ nixpkgs.tmsu
 
 #pip install aider
 
