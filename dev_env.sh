@@ -7,7 +7,6 @@ nix-env -iA \
  nixpkgs.asdf \
  nixpkgs.git \
  nixpkgs.fzf \
- nixpkgs.ripgrep \
  nixpkgs.zoxide \
  nixpkgs.vimHugeX \
  nixpkgs.tmsu \
