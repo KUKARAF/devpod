@@ -9,8 +9,9 @@ nix-env -iA \
  nixpkgs.fzf \
  nixpkgs.ripgrep \
  nixpkgs.zoxide \
- nixpkgs.vimHugeX
- nixpkgs.tmsu
+ nixpkgs.vimHugeX \
+ nixpkgs.tmsu \
+ nixpkgs.silver-searcher
 
 #pip install aider
 
