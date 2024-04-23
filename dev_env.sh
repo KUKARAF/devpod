@@ -3,7 +3,6 @@ if ! command -v nix-env >/dev/null; then
 fi
 
 nix-env -iA \
- nixpkgs.vim \
  nixpkgs.asdf \
  nixpkgs.git \
  nixpkgs.fzf \
