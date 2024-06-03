@@ -1,6 +1,13 @@
 if ! command -v nix-env >/dev/null; then
     curl -L https://nixos.org/nix/install | sh -s -- --daemon
+    exec $SHELL
 fi
+if ! command -v fzf >/dev/null; then
+   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+   ~/.fzf/install
+   exec $SHELL
+fi
+
 exec $SHELL
 nix-env -iA \
  nixpkgs.asdf \
