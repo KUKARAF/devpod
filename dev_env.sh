@@ -1,7 +1,7 @@
 if ! command -v nix-env >/dev/null; then
     curl -L https://nixos.org/nix/install | sh -s -- --daemon
 fi
-
+exec $SHELL
 nix-env -iA \
  nixpkgs.asdf \
  nixpkgs.git \
