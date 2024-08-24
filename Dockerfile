@@ -20,7 +20,8 @@ RUN dnf -y update && \
     tk-devel \
     openssl-devel \
     libffi-devel \
-    silversearcher-ag
+    silversearcher-ag \
+    podman
 
 # Install Nix
 RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon
