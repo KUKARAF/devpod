@@ -20,27 +20,34 @@ RUN dnf -y update && \
     podman
 
 
-# Install Nix
-RUN sh <(curl -L https://nixos.org/nix/install) --daemon
+# Install asdf
+RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.2 && \
+    echo '. $HOME/.asdf/asdf.sh' >> ~/.bashrc && \
+    echo '. $HOME/.asdf/completions/asdf.bash' >> ~/.bashrc
 
 # Install fzf
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
     ~/.fzf/install --all
 
-# Install asdf and other tools using Nix
-RUN . /root/.nix-profile/etc/profile.d/nix.sh && \
-    nix-env -iA \
-    nixpkgs.asdf \
-    nixpkgs.git \
-    nixpkgs.fzf \
-    nixpkgs.zoxide \
-    nixpkgs.vimHugeX \
-    nixpkgs.tmsu \
-    nixpkgs.silver-searcher && \
+# Install nodejs using asdf
+RUN . ~/.asdf/asdf.sh && \
     asdf plugin-add nodejs && \
     asdf install nodejs latest && \
     asdf global nodejs latest && \
     npm install -g shell-ask
+
+# Install zoxide
+RUN dnf -y install zoxide
+
+# Install vim
+RUN dnf -y install vim
+
+# Install tmsu
+# Commented out as no direct installation method is provided
+# RUN dnf -y install tmsu
+
+# Install the_silver_searcher
+RUN dnf -y install the_silver_searcher
 
 # Install YAI
 RUN curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bash
