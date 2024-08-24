@@ -21,7 +21,7 @@ RUN dnf -y update && \
 
 
 # Install Nix
-RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon
+RUN sh <(curl -L https://nixos.org/nix/install) --no-daemon
 
 # Install fzf
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
