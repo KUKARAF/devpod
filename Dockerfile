@@ -55,4 +55,10 @@ RUN curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bas
 # Copy the config.json file into the Docker image
 COPY config.json /root/.config/shell-ask/config.json
 COPY .bashrc /root/.bashrc
+# Copy the .env file into the Docker image
+COPY .env /root/.env
+
+# Load environment variables from .env
+RUN echo 'source /root/.env' >> /root/.bashrc
+
 CMD ["/bin/bash"]
