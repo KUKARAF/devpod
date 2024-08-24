@@ -43,5 +43,6 @@ RUN nix-env -iA \
     asdf global nodejs latest && \
     npm install -g shell-ask
 
-# Set up the shell environment
+# Copy the config.json file into the Docker image
+COPY config.json /root/.config/shell-ask/config.json
 CMD ["/bin/bash"]
