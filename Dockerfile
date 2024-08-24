@@ -43,6 +43,9 @@ RUN nix-env -iA \
     asdf global nodejs latest && \
     npm install -g shell-ask
 
+# Install YAI
+RUN curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bash
+
 # Copy the config.json file into the Docker image
 COPY config.json /root/.config/shell-ask/config.json
 CMD ["/bin/bash"]
