@@ -37,7 +37,11 @@ RUN nix-env -iA \
     nixpkgs.zoxide \
     nixpkgs.vimHugeX \
     nixpkgs.tmsu \
-    nixpkgs.silver-searcher
+    nixpkgs.silver-searcher && \
+    asdf plugin-add nodejs && \
+    asdf install nodejs latest && \
+    asdf global nodejs latest && \
+    npm install -g shell-ask
 
 # Set up the shell environment
 CMD ["/bin/bash"]
