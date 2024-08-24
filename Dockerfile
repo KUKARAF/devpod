@@ -28,7 +28,8 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
     ~/.fzf/install --all
 
 # Install asdf and other tools using Nix
-RUN nix-env -iA \
+RUN . /root/.nix-profile/etc/profile.d/nix.sh && \
+    nix-env -iA \
     nixpkgs.asdf \
     nixpkgs.git \
     nixpkgs.fzf \
