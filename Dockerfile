@@ -6,11 +6,7 @@ RUN dnf -y update && \
     dnf -y install \
     git \
     curl \
-    build-essential \
-    python3-devel \
-    python3-setuptools \
-    python3-pip \
-    python3-smbus \
+    @development-tools \                                                                                                                                                                               
     ncurses-devel \
     gdbm-devel \
     glibc-devel \
@@ -20,8 +16,9 @@ RUN dnf -y update && \
     tk-devel \
     openssl-devel \
     libffi-devel \
-    silversearcher-ag \
+    the_silver_searcher \                                                                                                                                                                              
     podman
+
 
 # Install Nix
 RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon
