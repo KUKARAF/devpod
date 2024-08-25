@@ -30,3 +30,5 @@ fi
 
 # Add user specific environment variables
 export EDITOR=vim
+eval "$(starship init bash)"
+eval "$(zoxide init bash)"

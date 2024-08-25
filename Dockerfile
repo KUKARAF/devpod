@@ -7,6 +7,7 @@ RUN dnf -y update && \
     git \
     curl \
     @development-tools \                                                                                                                                                                               
+    rust \
     ncurses-devel \
     gdbm-devel \
     glibc-devel \
@@ -38,6 +39,10 @@ RUN . ~/.asdf/asdf.sh && \
 
 # Install zoxide
 RUN dnf -y install zoxide
+RUN asdf plugin-add rust && \
+    asdf install rust latest && \
+    asdf global rust latest && \
+    cargo install starship --locked
 
 # Install vim
 RUN dnf -y install vim
