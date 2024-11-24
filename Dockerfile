@@ -57,7 +57,12 @@ COPY setup_vim_plugins.sh /root/
 RUN chmod +x /root/setup_vim_plugins.sh && /root/setup_vim_plugins.sh
 
 # Add /env/bin to PATH
-ENV PATH="/env/bin:${PATH}"
+ENV PATH="/env/bin:/env/aider/bin:${PATH}"
+
+# Create and setup aider virtualenv
+RUN python -m venv /env/aider && \
+    /env/aider/bin/python -m pip install --upgrade pip && \
+    /env/aider/bin/pip install aider-chat
 
 # Install tmsu
 # Commented out as no direct installation method is provided
