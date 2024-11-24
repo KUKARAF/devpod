@@ -39,6 +39,7 @@
             pkgs.git
             pkgs.vim
             pkgs.bash
+            pkgs.pass
           ];
           shellHook = ''
             unset PYTHONPATH

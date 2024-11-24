@@ -6,7 +6,8 @@ RUN nix-env -iA \
     nixpkgs.coreutils \
     nixpkgs.gnused \
     nixpkgs.gnugrep \
-    nixpkgs.bash
+    nixpkgs.bash \
+    nixpkgs.pass
 
 # Copy Nix configuration files
 COPY flake.nix /app/
