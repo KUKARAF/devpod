@@ -1,10 +1,10 @@
 {
-  description = "Development environment with uv";
+  description = "Development environment with uv2nix";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    
+
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -29,23 +29,41 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         python = pkgs.python312;
+
+        workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
+
+        overlay = workspace.mkPyprojectOverlay {
+          sourcePreference = "wheel";
+        };
+
+        pyprojectOverrides = _final: _prev: { };
+
+        pythonSet = (pkgs.callPackage pyproject-nix.build.packages {
+          inherit python;
+        }).overrideScope
+          (
+            lib.composeManyExtensions [
+              pyproject-build-systems.overlays.default
+              overlay
+              pyprojectOverrides
+            ]
+          );
+
       in
       {
         devShells.default = pkgs.mkShell {
           packages = [
             python
             pkgs.uv
-            # Basic tools
             pkgs.git
             pkgs.vim
             pkgs.bash
             pkgs.pass
-            (python.withPackages(ps: [
-              ps.aider-chat
-            ]))
           ];
           shellHook = ''
             unset PYTHONPATH
+            # Get repository root using git
+            export REPO_ROOT=$(git rev-parse --show-toplevel)
           '';
         };
       });
