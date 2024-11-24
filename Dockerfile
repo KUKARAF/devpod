@@ -30,12 +30,19 @@ RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.2 && \
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
     ~/.fzf/install --all
 
-# Install nodejs using asdf
+# Create env directory for CLI tools
+RUN mkdir -p /env
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install nodejs using asdf and install shell-ask in /env
 RUN . ~/.asdf/asdf.sh && \
     asdf plugin-add nodejs && \
     asdf install nodejs latest && \
     asdf global nodejs latest && \
-    npm install -g shell-ask
+    cd /env && \
+    uv pip install shell-ask
 
 # Install zoxide
 RUN dnf -y install zoxide
@@ -48,6 +55,9 @@ RUN dnf -y install zoxide
 RUN dnf -y install vim
 COPY setup_vim_plugins.sh /root/
 RUN chmod +x /root/setup_vim_plugins.sh && /root/setup_vim_plugins.sh
+
+# Add /env/bin to PATH
+ENV PATH="/env/bin:${PATH}"
 
 # Install tmsu
 # Commented out as no direct installation method is provided
