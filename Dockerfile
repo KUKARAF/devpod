@@ -2,7 +2,13 @@
 FROM nixos/nix:latest
 
 # Install basic Unix tools
-RUN nix-env -iA nixpkgs.coreutils nixpkgs.gnused nixpkgs.grep
+RUN nix-env -iA \
+    nixpkgs.coreutils \
+    nixpkgs.gnused \
+    nixpkgs.gnugrep \
+    nixpkgs.bash \
+    nixpkgs.shadow \
+    nixpkgs.util-linux
 
 # Copy Nix configuration files
 COPY flake.nix /app/
