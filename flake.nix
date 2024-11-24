@@ -67,9 +67,10 @@
             # Python dependencies
             (python3.withPackages (ps: [
               ps.python-lsp-server
-              ps.python-lsp-black
-              ps.python-lsp-mypy
-              ps.python-lsp-isort
+              ps.black
+              ps.mypy
+              ps.isort
+              ps.ruff
               ps.python-lsp-ruff
             ]))
             
