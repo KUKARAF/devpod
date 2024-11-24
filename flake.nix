@@ -21,11 +21,56 @@
             rustc
             cargo
             
+            # Vim and dependencies
+            (vim_configurable.customize {
+              name = "vim";
+              vimrcConfig.packages.myVimPackage = with pkgs.vimPlugins; {
+                start = [ 
+                  vim-nix
+                  vim-lastplace
+                  vim-fugitive
+                  vim-commentary
+                  ctrlp-vim
+                  fzf-vim
+                ];
+                opt = [];
+              };
+              vimrcConfig.customRC = ''
+                " Basic settings
+                set nocompatible
+                set backspace=indent,eol,start
+                set hidden
+                set mouse=a
+                set number
+                set ignorecase
+                set smartcase
+                set colorcolumn=80
+                
+                " Turn on syntax highlighting
+                syntax on
+                
+                " Indentation settings
+                set autoindent
+                set expandtab
+                set shiftwidth=2
+                set softtabstop=2
+                
+                " Search settings
+                set hlsearch
+                set incsearch
+                
+                " File type detection
+                filetype plugin indent on
+              '';
+            })
+            
             # Python dependencies
-            python3
-            python3Packages.pip
-            python3Packages.setuptools
-            python3Packages.wheel
+            (python3.withPackages (ps: [
+              ps.python-language-server
+              ps.pyls-mypy 
+              ps.pyls-isort 
+              ps.pyls-black
+            ]))
             
             # System libraries
             ncurses
