@@ -44,8 +44,10 @@ RUN dnf -y install zoxide
 #    asdf global rust latest && \
 #    cargo install starship --locked
 
-# Install vim
+# Install vim and setup plugins
 RUN dnf -y install vim
+COPY setup_vim_plugins.sh /root/
+RUN chmod +x /root/setup_vim_plugins.sh && /root/setup_vim_plugins.sh
 
 # Install tmsu
 # Commented out as no direct installation method is provided
