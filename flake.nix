@@ -66,10 +66,11 @@
             
             # Python dependencies
             (python3.withPackages (ps: [
-              ps.python-language-server
-              ps.pyls-mypy 
-              ps.pyls-isort 
-              ps.pyls-black
+              ps.python-lsp-server
+              ps.python-lsp-black
+              ps.python-lsp-mypy
+              ps.python-lsp-isort
+              ps.python-lsp-ruff
             ]))
             
             # System libraries
