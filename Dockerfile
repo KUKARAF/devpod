@@ -3,7 +3,6 @@ FROM nixos/nix:latest
 
 # Copy Nix configuration files
 COPY flake.nix /app/
-COPY flake.lock /app/
 COPY setup_vim_plugins.sh /app/
 COPY config.json /root/.config/shell-ask/config.json
 COPY .bashrc /root/.bashrc
