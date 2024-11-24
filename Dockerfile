@@ -1,6 +1,9 @@
 # Use the official Nix image as base
 FROM nixos/nix:latest
 
+# Install basic Unix tools
+RUN nix-env -iA nixpkgs.coreutils nixpkgs.gnused nixpkgs.grep
+
 # Copy Nix configuration files
 COPY flake.nix /app/
 COPY setup_vim_plugins.sh /app/
