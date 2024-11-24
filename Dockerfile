@@ -1,83 +1,33 @@
-# Use a Fedora base image
-FROM fedora:latest
+# Use the official Nix image as base
+FROM nixos/nix:latest
 
-# Install necessary packages
-RUN dnf -y update && \
-    dnf -y install \
-    git \
-    curl \
-    @development-tools \                                                                                                                                                                               
-    rust \
-    ncurses-devel \
-    gdbm-devel \
-    glibc-devel \
-    xz-devel \
-    zlib-devel \
-    sqlite-devel \
-    tk-devel \
-    openssl-devel \
-    libffi-devel \
-    the_silver_searcher \                                                                                                                                                                              
-    podman
-
-
-# Install asdf
-RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.2 && \
-    echo '. $HOME/.asdf/asdf.sh' >> ~/.bashrc && \
-    echo '. $HOME/.asdf/completions/asdf.bash' >> ~/.bashrc
-
-# Install fzf
-RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
-    ~/.fzf/install --all
-
-# Create env directory for CLI tools
-RUN mkdir -p /env
-
-# Setup asdf and nodejs
-SHELL ["/bin/bash", "--login", "-c"]
-RUN source ~/.bashrc && source ~/.asdf/asdf.sh && asdf plugin-add nodejs
-RUN source ~/.bashrc && source ~/.asdf/asdf.sh && asdf install nodejs latest
-RUN source ~/.bashrc && source ~/.asdf/asdf.sh && asdf global nodejs latest
-
-# Install shell-ask
-# Install shell-ask globally
-RUN source ~/.bashrc && npm install -g shell-ask
-
-# Install zoxide
-RUN dnf -y install zoxide
-#RUN asdf plugin-add rust && \
-#    asdf install rust latest && \
-#    asdf global rust latest && \
-#    cargo install starship --locked
-
-# Install vim and setup plugins
-RUN dnf -y install vim
-COPY setup_vim_plugins.sh /root/
-RUN chmod +x /root/setup_vim_plugins.sh && /root/setup_vim_plugins.sh
-
-# Add /env/bin to PATH
-ENV PATH="/env/bin:/env/aider/bin:${PATH}"
-
-# Create and setup aider virtualenv
-#RUN uv venv /env/aider && \
-#    uv pip install --venv /env/aider aider-chat
-
-# Install tmsu
-# Commented out as no direct installation method is provided
-# RUN dnf -y install tmsu
-
-# Install the_silver_searcher
-RUN dnf -y install the_silver_searcher
-
-# Install YAI
-RUN curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bash
-
-# Copy the config.json file into the Docker image
+# Copy Nix configuration files
+COPY flake.nix /app/
+COPY flake.lock /app/
+COPY setup_vim_plugins.sh /app/
 COPY config.json /root/.config/shell-ask/config.json
 COPY .bashrc /root/.bashrc
-# Copy the .env file into the Docker image
-#COPY .env /root/.env
-#RUN echo 'source /root/.env' >> /root/.bashrc
-# Load environment variables from .env
 
-CMD ["/bin/bash"]
+# Enable flakes
+RUN mkdir -p /etc/nix && \
+    echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+
+WORKDIR /app
+
+# Install dependencies using flake
+RUN nix develop -c true
+
+# Create necessary directories
+RUN mkdir -p /env/bin /env/aider/bin /root/.config/shell-ask
+
+# Setup vim plugins
+RUN nix develop -c bash /app/setup_vim_plugins.sh
+
+# Install YAI
+RUN nix develop -c bash -c 'curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bash'
+
+# Set environment variables
+ENV PATH="/env/bin:/env/aider/bin:${PATH}"
+
+# Default command
+CMD ["nix", "develop"]
