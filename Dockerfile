@@ -33,19 +33,20 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
 # Create env directory for CLI tools
 RUN mkdir -p /env
 
-# Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    echo 'export PATH="/root/.cargo/bin:$PATH"' >> ~/.bashrc
+# Install uv and set PATH
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN echo 'export PATH="/root/.cargo/bin:$PATH"' >> ~/.bashrc
 
-# Install nodejs using asdf and install shell-ask in /env
+# Setup asdf and nodejs
 SHELL ["/bin/bash", "--login", "-c"]
-RUN source ~/.bashrc && \
-    source ~/.asdf/asdf.sh && \
-    asdf plugin-add nodejs && \
-    asdf install nodejs latest && \
-    asdf global nodejs latest && \
-    cd /env && \
-    /root/.cargo/bin/uv pip install shell-ask
+RUN source ~/.bashrc && source ~/.asdf/asdf.sh && asdf plugin-add nodejs
+RUN source ~/.bashrc && source ~/.asdf/asdf.sh && asdf install nodejs latest
+RUN source ~/.bashrc && source ~/.asdf/asdf.sh && asdf global nodejs latest
+
+# Install shell-ask
+WORKDIR /env
+RUN source ~/.bashrc && /root/.cargo/bin/uv pip install shell-ask
+WORKDIR /
 
 # Install zoxide
 RUN dnf -y install zoxide
