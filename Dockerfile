@@ -35,11 +35,12 @@ RUN mkdir -p /env
 
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    echo 'export PATH="/root/.cargo/bin:$PATH"' >> ~/.bashrc && \
-    . ~/.bashrc
+    echo 'export PATH="/root/.cargo/bin:$PATH"' >> ~/.bashrc
 
 # Install nodejs using asdf and install shell-ask in /env
-RUN . ~/.asdf/asdf.sh && \
+SHELL ["/bin/bash", "--login", "-c"]
+RUN source ~/.bashrc && \
+    source ~/.asdf/asdf.sh && \
     asdf plugin-add nodejs && \
     asdf install nodejs latest && \
     asdf global nodejs latest && \
