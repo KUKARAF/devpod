@@ -47,8 +47,8 @@ The container comes with:
 - FZF (fuzzy finder)
 - The Silver Searcher (ag)
 - Shell-ask
-- YAI (Yet Another AI CLI)
 - Zoxide
+- Aider
 
 ### Features
 - Seamless integration with host system
