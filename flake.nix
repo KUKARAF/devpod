@@ -65,8 +65,14 @@
             # Get repository root using git
             export REPO_ROOT=$(git rev-parse --show-toplevel)
             
-            # Install aider-chat using uv
-            uv pip install --system aider-chat
+            # Create env directory if it doesn't exist
+            mkdir -p $REPO_ROOT/env
+            
+            # Set PYTHONPATH to use our env directory
+            export PYTHONPATH="$REPO_ROOT/env:$PYTHONPATH"
+            
+            # Install aider-chat using uv into env directory
+            uv pip install --system --target=$REPO_ROOT/env aider-chat
           '';
         };
       });
