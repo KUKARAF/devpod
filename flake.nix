@@ -42,7 +42,7 @@
           inherit python;
         }).overrideScope
           (
-            lib.composeManyExtensions [
+            pkgs.lib.composeManyExtensions [
               pyproject-build-systems.overlays.default
               overlay
               pyprojectOverrides
