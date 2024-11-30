@@ -66,13 +66,13 @@
             export REPO_ROOT=$(git rev-parse --show-toplevel)
             
             # Create env directory if it doesn't exist
-            mkdir -p $REPO_ROOT/env
+            mkdir -p $HOME/.config/env
             
             # Set PYTHONPATH to use our env directory
-            export PYTHONPATH="$REPO_ROOT/env:$PYTHONPATH"
+            export PYTHONPATH="$HOME/.config/env:$PYTHONPATH"
             
             # Install aider-chat using uv into env directory
-            uv pip install --system --target=$REPO_ROOT/env aider-chat
+            uv pip install --system --target=$HOME/.config/env aider-chat
           '';
         };
       });
