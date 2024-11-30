@@ -59,6 +59,7 @@
             pkgs.vim
             pkgs.bash
             pkgs.pass
+            (python.withPackages (ps: [ ps.aider-chat ]))
           ];
           shellHook = ''
             unset PYTHONPATH
