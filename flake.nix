@@ -59,12 +59,14 @@
             pkgs.vim
             pkgs.bash
             pkgs.pass
-            (python.withPackages (ps: [ ps.aider-chat ]))
           ];
           shellHook = ''
             unset PYTHONPATH
             # Get repository root using git
             export REPO_ROOT=$(git rev-parse --show-toplevel)
+            
+            # Install aider-chat using uv
+            uv pip install --system aider-chat
           '';
         };
       });
