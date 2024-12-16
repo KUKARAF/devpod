@@ -32,7 +32,7 @@ git clone --recurse-submodules -j8 https://github.com/KUKARAF/vim_plugins ~/.vim
 
 1. Create a new distrobox container using this image:
    ```bash
-   distrobox create -i ghcr.io/kukaraf/devpod:main -n dev
+   distrobox create -i image=ghcr.io/kukaraf/devpod:latest -n dev
    ```
 
 2. Enter the container:
