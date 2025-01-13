@@ -22,6 +22,9 @@ RUN apt-get update && apt-get install -y \
     lua5.2 \
     liblua5.2-dev \
     libperl-dev \
+    ripgrep \
+    fd-find \
+    tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install latest Vim from source
@@ -41,10 +44,15 @@ RUN git clone https://github.com/vim/vim.git /tmp/vim \
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install asdf
+# Install asdf and Node.js
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1 \
     && echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc \
-    && echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc
+    && echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc \
+    && . "$HOME/.asdf/asdf.sh" \
+    && asdf plugin add nodejs \
+    && asdf install nodejs latest \
+    && asdf global nodejs latest \
+    && npm install -g shell-ask
 
 # Install zoxide
 RUN curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash \
