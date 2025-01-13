@@ -1,26 +1,58 @@
-# Use the official Nix image as base
-FROM nixos/nix:latest
+# Use Debian latest as base
+FROM debian:latest
 
-# Install basic Unix tools
-RUN nix-env -iA \
-    nixpkgs.coreutils \
-    nixpkgs.gnused \
-    nixpkgs.gnugrep \
-    nixpkgs.bash \
-    nixpkgs.pass
+# Install basic tools and dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    fzf \
+    silversearcher-ag \
+    python3 \
+    python3-pip \
+    build-essential \
+    libncurses5-dev \
+    libgtk2.0-dev \
+    libatk1.0-dev \
+    libcairo2-dev \
+    libx11-dev \
+    libxpm-dev \
+    libxt-dev \
+    python3-dev \
+    ruby-dev \
+    lua5.2 \
+    liblua5.2-dev \
+    libperl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy Nix configuration files
-COPY flake.nix /app/
-COPY .bashrc /root/.bashrc
+# Install latest Vim from source
+RUN git clone https://github.com/vim/vim.git /tmp/vim \
+    && cd /tmp/vim \
+    && ./configure --with-features=huge \
+            --enable-python3interp=yes \
+            --enable-rubyinterp=yes \
+            --enable-luainterp=yes \
+            --enable-perlinterp=yes \
+            --enable-multibyte \
+            --enable-cscope \
+    && make -j$(nproc) \
+    && make install \
+    && rm -rf /tmp/vim
 
-# Enable flakes
-RUN mkdir -p /etc/nix && \
-    echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install asdf
+RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1 \
+    && echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc \
+    && echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc
+
+# Install zoxide
+RUN curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash \
+    && echo 'eval "$(zoxide init bash)"' >> ~/.bashrc
 
 WORKDIR /app
 
-# Install dependencies using flake
-RUN nix develop -c true
+# Copy bashrc
+COPY .bashrc /root/.bashrc
 
-# Default command
-CMD ["nix", "develop"]
+CMD ["/bin/bash"]
