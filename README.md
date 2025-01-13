@@ -43,7 +43,8 @@ curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/setup_vim_p
 The container comes with:
 - Vim with pre-configured plugins
 - Development tools and build essentials
-- Node.js (via asdf)
+- Node.js (via asdf version manager)
+- UV (fast Python package installer)
 - FZF (fuzzy finder)
 - The Silver Searcher (ag)
 - Shell-ask
