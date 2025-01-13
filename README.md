@@ -25,10 +25,9 @@ curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/setup_vim_p
 
 ### Setup and Usage
 
-1. Download the distrobox configuration and create the container:
+1. Create the development container using the provided configuration:
    ```bash
-   curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/distrobox.ini -o distrobox.ini
-   distrobox create --file distrobox.ini -n dev
+   distrobox assemble create
    ```
 
 2. Enter the container:
@@ -38,7 +37,7 @@ curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/setup_vim_p
 
 3. Verify the exported tools:
    ```bash
-   which uv ask ag z zoxide fzf asdf
+   which vim ag fzf rg fd sgpt zoxide
    ```
 
 The container comes with:
