@@ -2,42 +2,43 @@
 
 This repository contains a collection of vim plugins and a development environment setup using Docker and distrobox.
 
-## Vim Plugin Installation
+## Quick Setup
 
-To install the vim plugins directly:
+### 1. Install Vim Plugins
 
+Run this command to set up vim plugins:
 ```bash
-git clone --recurse-submodules -j8 https://github.com/KUKARAF/vim_plugins ~/.vim/
+curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/setup_vim_plugins.sh | bash
 ```
 
 ## Using with Distrobox
 
 ### Prerequisites
 
-1. Install distrobox on your system:
+1. Install distrobox and podman on your system:
    ```bash
-   sudo dnf install distrobox   # Fedora
-   # or
-   sudo apt install distrobox   # Ubuntu/Debian
-   ```
-
-2. Make sure you have podman installed:
-   ```bash
-   sudo dnf install podman      # Fedora
-   # or
-   sudo apt install podman      # Ubuntu/Debian
+   # Fedora
+   sudo dnf install distrobox podman
+   # or Ubuntu/Debian
+   sudo apt install distrobox podman
    ```
 
 ### Setup and Usage
 
-1. Create a new distrobox container using this image:
+1. Download the distrobox configuration and create the container:
    ```bash
-   distrobox create -i ghcr.io/kukaraf/devpod:latest -n dev
+   curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/distrobox.ini -o distrobox.ini
+   distrobox create --file distrobox.ini -n dev
    ```
 
 2. Enter the container:
    ```bash
    distrobox enter dev
+   ```
+
+3. Verify the exported tools:
+   ```bash
+   which uv ask ag z zoxide fzf asdf
    ```
 
 The container comes with:
