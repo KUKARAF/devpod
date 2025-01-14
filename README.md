@@ -27,7 +27,7 @@ curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/setup_vim_p
 
 1. Create the development container using the provided configuration:
    ```bash
-   git clone https://github.com/KUKARAF/devpod && cd devpod &&  distrobox assemble create --file distrobox.ini
+   wget https://raw.githubusercontent.com/KUKARAF/devpod/refs/heads/master/distrobox.ini && distrobox assemble create --file distrobox.ini
    ```
 
 2. Verify the exported tools:
