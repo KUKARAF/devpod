@@ -45,14 +45,8 @@ RUN git clone https://github.com/vim/vim.git /tmp/vim \
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install asdf and Node.js
-RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1 \
-    && echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc \
-    && echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc \
-    && . "$HOME/.asdf/asdf.sh" \
-    && asdf plugin add nodejs \
-    && asdf install nodejs latest \
-    && asdf global nodejs latest \
-    && npm install -g shell-ask
+RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
+
 
 # Install zoxide
 RUN curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash \
