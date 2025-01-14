@@ -8,7 +8,7 @@ PS1='[\u@\h \W]\$ '
 
 # Basic environment
 export EDITOR=vim
-
+echo 'eval "$(zoxide init bash)"'
 
 echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc 
 echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc 
