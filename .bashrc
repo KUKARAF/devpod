@@ -10,6 +10,11 @@ PS1='[\u@\h \W]\$ '
 export EDITOR=vim
 
 
+echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc 
+echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc 
+. "$HOME/.asdf/asdf.sh" 
+
+
 get_keys() {
   if [ -z "$ANTHROPIC_API_KEY" ]; then
     export ANTHROPIC_API_KEY=$(pass external/ANTHROPIC_API_KEY)
