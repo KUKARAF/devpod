@@ -27,34 +27,26 @@ RUN apt-get update && apt-get install -y \
     tmux \
     && rm -rf /var/lib/apt/lists/*
 
-# Install latest Vim from source
-RUN git clone https://github.com/vim/vim.git /tmp/vim \
-    && cd /tmp/vim \
-    && ./configure --with-features=huge \
-            --enable-python3interp=yes \
-            --enable-rubyinterp=yes \
-            --enable-luainterp=yes \
-            --enable-perlinterp=yes \
-            --enable-multibyte \
-            --enable-cscope \
-    && make -j$(nproc) \
-    && make install \
-    && rm -rf /tmp/vim
 
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+RUN mv /root/.local/bin/uv /usr/bin/
+RUN mv /root/.local/bin/uvx /usr/bin/
+
+
+RUN curl -sS https://starship.rs/install.sh | sh
 
 # Install asdf and Node.js
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
 
 
 # Install zoxide
-RUN curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash \
-    && echo 'eval "$(zoxide init bash)"' >> ~/.bashrc
+RUN curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash 
 
-WORKDIR /app
+WORKDIR /
 
 # Copy bashrc
-COPY .bashrc /root/.bashrc
+
 
 CMD ["/bin/bash"]
