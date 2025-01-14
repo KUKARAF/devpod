@@ -14,14 +14,9 @@ curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/setup_vim_p
 ## Using with Distrobox
 
 ### Prerequisites
+- distrobox
+-  wget 
 
-1. Install distrobox and podman on your system:
-   ```bash
-   # Fedora
-   sudo dnf install distrobox podman
-   # or Ubuntu/Debian
-   sudo apt install distrobox podman
-   ```
 
 ### Setup and Usage
 
@@ -32,7 +27,7 @@ curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/setup_vim_p
 
 2. Verify the exported tools:
    ```bash
-   which vim ag fzf rg fd sgpt zoxide
+   which vim ag fzf rg zoxide git
    ```
 
 The container comes with:
