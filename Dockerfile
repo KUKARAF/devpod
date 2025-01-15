@@ -40,7 +40,7 @@ RUN mv /root/.local/bin/uvx /usr/bin/
 #RUN cargo install zoxide
 
 # Install asdf and Node.js
-RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
+#RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
 
 
 
