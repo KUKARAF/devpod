@@ -24,9 +24,7 @@ RUN apt-get update && apt-get install -y \
     libperl-dev \
     ripgrep \
     fd-find \
-    tmux \
-    && rm -rf /var/lib/apt/lists/*
-
+    tmux 
 
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
