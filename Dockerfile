@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     fzf \
+    cargo \
     silversearcher-ag \
     python3 \
     python3-pip \
