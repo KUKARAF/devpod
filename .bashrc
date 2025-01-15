@@ -13,7 +13,7 @@ echo 'eval "$(zoxide init bash)"'
 echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc 
 echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc 
 . "$HOME/.asdf/asdf.sh" 
-
+source /home/corpo.t-mobile.pl/rkukawski/env/fzf-git.sh/fzf-git.sh
 
 get_keys() {
   if [ -z "$ANTHROPIC_API_KEY" ]; then
