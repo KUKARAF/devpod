@@ -35,7 +35,8 @@ RUN mv /root/.local/bin/uv /usr/bin/
 RUN mv /root/.local/bin/uvx /usr/bin/
 
 
-RUN curl -sS https://starship.rs/install.sh | sh
+#RUN curl -sS https://starship.rs/install.sh | sh
+RUN cargo install starship
 
 # Install asdf and Node.js
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
