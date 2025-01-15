@@ -30,7 +30,8 @@ RUN apt-get update && apt-get install -y \
 
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-RUN curl https://sh.rustup.rs -sSfy | sh
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+
 
 RUN mv /root/.local/bin/uv /usr/bin/
 RUN mv /root/.local/bin/uvx /usr/bin/
