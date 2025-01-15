@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     fzf \
-    cargo \
     silversearcher-ag \
     python3 \
     python3-pip \
@@ -31,6 +30,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN curl https://sh.rustup.rs -sSf | sh
 
 RUN mv /root/.local/bin/uv /usr/bin/
 RUN mv /root/.local/bin/uvx /usr/bin/
@@ -38,13 +38,12 @@ RUN mv /root/.local/bin/uvx /usr/bin/
 
 #RUN curl -sS https://starship.rs/install.sh | sh
 RUN cargo install starship
+RUN cargo install zoxide
 
 # Install asdf and Node.js
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
 
 
-# Install zoxide
-RUN curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash 
 
 WORKDIR /
 
