@@ -1,3 +1,15 @@
+
+#FROM golang:latest as go-build
+       
+# Install packages
+#RUN go install github.com/x/y@latest \
+# && cp $GOPATH/bin/package /usr/local/bin/
+ 
+
+##laer in actal container: 
+## COPY --from=go-build /usr/local/bin/package /usr/src/toolkit/toolkit/scripts/webapp/
+
+
 # Use Debian latest as base
 FROM debian:latest
 
