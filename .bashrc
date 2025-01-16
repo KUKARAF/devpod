@@ -3,17 +3,11 @@ if [ -f /etc/bashrc ]; then
     . /etc/bashrc
 fi
 
-# Basic prompt
-PS1='[\u@\h \W]\$ '
 
 # Basic environment
 export EDITOR=vim
 echo 'eval "$(zoxide init bash)"'
 
-echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc 
-echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc 
-. "$HOME/.asdf/asdf.sh" 
-source /home/corpo.t-mobile.pl/rkukawski/env/fzf-git.sh/fzf-git.sh
 
 get_keys() {
   if [ -z "$ANTHROPIC_API_KEY" ]; then
@@ -24,8 +18,23 @@ get_keys() {
   fi
 }
 
+fzf_git_setup() {
+  local config_file="$HOME/.config/fzf-git/fzf-git.sh"
+
+  if [ -f "$config_file" ]; then
+    # Load the existing configuration file
+    source "$config_file"
+  else
+    # Download the configuration file from the specified URL
+    mkdir -p "$(dirname "$config_file")"
+    wget -O "$config_file" "https://raw.githubusercontent.com/junegunn/fzf-git.sh/main/fzf-git.sh"
+    source "$config_file"
+  fi
+}
+
+
 PROMPT_COMMAND="get_keys;$PROMPT_COMMAND"
-source /env/fzf-git.sh/fzf-git.sh
+source ~/.config/fzf-git.sh/fzf-git.sh
 alias docker-compose="docker compose"
 alias docker-login="pass tmpl/corpo | head -n 1 |  docker login af2.corpo.t-mobile.pl -u rkukawski --password-stdin"
 alias kerberos-login="pass tmpl/corpo | head -n 1 | kinit $USER"
