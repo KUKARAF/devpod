@@ -49,8 +49,8 @@ RUN mv /root/.local/bin/uvx /usr/bin/
 
 
 #RUN curl -sS https://starship.rs/install.sh | sh
-#RUN cargo install starship
-#RUN cargo install zoxide
+RUN cargo install starship
+RUN cargo install zoxide
 
 # Install asdf and Node.js
 #RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
