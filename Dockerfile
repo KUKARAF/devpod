@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y \
     libperl-dev \
     ripgrep \
     fd-find \
+    cmake \
     tmux 
 
 # Install uv
@@ -48,7 +49,7 @@ RUN mv /root/.local/bin/uvx /usr/bin/
 
 
 #RUN curl -sS https://starship.rs/install.sh | sh
-#RUN . "$HOME/.cargo/env" && cargo install starship
+RUN . "$HOME/.cargo/env" && cargo install starship
 #RUN . "$HOME/.cargo/env" && cargo install zoxide
 
 # Install asdf and Node.js
