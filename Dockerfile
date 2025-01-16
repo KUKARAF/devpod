@@ -48,6 +48,7 @@ RUN mv /root/.local/bin/uvx /usr/bin/
 
 
 #RUN curl -sS https://starship.rs/install.sh | sh
+RUN . "$HOME/.cargo/env"
 RUN cargo install starship
 RUN cargo install zoxide
 
