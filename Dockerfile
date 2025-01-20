@@ -15,29 +15,37 @@ FROM debian:latest
 
 # Install basic tools and dependencies
 RUN apt-get update && apt-get install -y \
-    curl \
-    git \
-    vim-nox \
-    silversearcher-ag \
-    python3 \
-    python3-pip \
+    7zip \
     build-essential \
-    libncurses5-dev \
-    libgtk2.0-dev \
+    cmake \
+    curl \
+    fd-find \
+    ffmpeg \
+    fzf \
+    git \
+    imagemagick \
+    jq \
     libatk1.0-dev \
     libcairo2-dev \
+    libgtk2.0-dev \
+    liblua5.2-dev \
+    libncurses5-dev \
+    libperl-dev \
     libx11-dev \
     libxpm-dev \
     libxt-dev \
-    python3-dev \
-    ruby-dev \
     lua5.2 \
-    liblua5.2-dev \
-    libperl-dev \
+    poppler-utils \
+    python3 \
+    python3-dev \
+    python3-pip \
     ripgrep \
-    fd-find \
-    cmake \
-    tmux 
+    ripgrep \ 
+    ruby-dev \
+    silversearcher-ag \
+    tmux \
+    vim-nox
+
 
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -50,7 +58,10 @@ RUN mv /root/.local/bin/uvx /usr/bin/
 
 #RUN curl -sS https://starship.rs/install.sh | sh
 RUN . "$HOME/.cargo/env" && cargo install starship
-#RUN . "$HOME/.cargo/env" && cargo install zoxide
+RUN . "$HOME/.cargo/env" && cargo install zoxide
+RUN . "$HOME/.cargo/env" && cargo install --locked zellij
+RUN . "$HOME/.cargo/env" && cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli
+
 
 # Install asdf and Node.js
 #RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
