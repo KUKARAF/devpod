@@ -58,6 +58,7 @@ RUN mv /root/.local/bin/uvx /usr/bin/
 #RUN curl -sS https://starship.rs/install.sh | sh
 RUN . "$HOME/.cargo/env" && cargo install starship
 RUN . "$HOME/.cargo/env" && cargo install zoxide
+RUN . "$HOME/.cargo/env" && cargo install memos-cli
 RUN . "$HOME/.cargo/env" && cargo install --locked zellij
 RUN . "$HOME/.cargo/env" && cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli
 
