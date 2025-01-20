@@ -21,7 +21,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     fd-find \
     ffmpeg \
-    fzf \
     git \
     imagemagick \
     jq \
