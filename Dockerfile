@@ -49,18 +49,18 @@ RUN apt-get update && apt-get install -y \
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
-
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 RUN mv /root/.local/bin/uv /usr/bin/
 RUN mv /root/.local/bin/uvx /usr/bin/
 
 
 #RUN curl -sS https://starship.rs/install.sh | sh
-RUN . "$HOME/.cargo/env" && cargo install starship
-RUN . "$HOME/.cargo/env" && cargo install zoxide
-#RUN . "$HOME/.cargo/env" && cargo install memos-cli
-RUN . "$HOME/.cargo/env" && cargo install --locked zellij
-RUN . "$HOME/.cargo/env" && cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli
+RUN cargo install starship
+RUN cargo install zoxide
+#RUN cargo install memos-cli
+RUN cargo install --locked zellij
+RUN cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli
 
 
 # Install asdf and Node.js
