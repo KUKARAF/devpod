@@ -56,11 +56,11 @@ RUN mv /root/.local/bin/uvx /usr/bin/
 
 
 #RUN curl -sS https://starship.rs/install.sh | sh
-RUN cargo install starship
-RUN cargo install zoxide
+RUN cargo install starship --path /usr/bin/
+RUN cargo install zoxide --path /usr/bin/
 #RUN cargo install memos-cli
-RUN cargo install --locked zellij
-RUN cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli
+RUN cargo install --locked zellij --path /usr/bin/
+RUN cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli --path /usr/bin/
 
 
 # Install asdf and Node.js
