@@ -47,6 +47,9 @@ RUN apt-get update && apt-get install -y \
 
 
 # Install uv
+
+
+
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -62,6 +65,7 @@ RUN cargo install zoxide
 RUN cargo install --locked zellij 
 RUN cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli 
 
+RUN mv /root/.local/bin/* /usr/bin/
 
 # Install asdf and Node.js
 #RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
