@@ -5,9 +5,9 @@ if !executable('aider')
     echohl None
 endif
 
-if !executable('ask')
+if !executable('llm') && !executable('ask')
     echohl WarningMsg
-    echo "Warning: 'ask' command not found. The Ask command will not work."
+    echo "Warning: Neither 'llm' nor 'ask' command found. The Ask command will not work."
     echohl None
 endif
 
@@ -38,8 +38,11 @@ function! AskQuestion(question)
     let temp_file = tempname()
     call writefile(split(buffer_content, "\n"), temp_file)
 
-    " Run the 'ask' command with the buffer content and question
-    let command = "ask -s '" . a:question . "' < " . temp_file
+    " Determine which command to use
+    let cmd = executable('llm') ? 'llm' : 'ask'
+    
+    " Run the command with the buffer content and question
+    let command = cmd . " -s '" . a:question . "' < " . temp_file
     let output = system(command)
 
     " Open a new tab and display the output
