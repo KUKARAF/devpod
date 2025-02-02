@@ -1,61 +1,43 @@
 #!/bin/bash
 
-# Function to get Jina API key from Pass and define search/read functions
-setup_jina() {
-    # Get Jina API key from Pass
-    JINA_API_KEY=$(pass show llm/jina 2>/dev/null)
-    if [ $? -ne 0 ]; then
-        echo "Error: Jina API key not found in Pass" >&2
-        return 1
-    fi
+if [[ "$1" == "search" ]]; then
+    # Remove the first argument and join the rest with spaces
+    shift
+    query="$*"
     
-    # Set the API key as environment variable
-    export JINA_API_KEY
+    # Get API key directly from pass
+    JINA_API_KEY=$(pass show llm/jina 2>/dev/null) || { echo "Error: Jina API key not found in Pass" >&2; exit 1; }
     
-    # Define the search function
-    jina_search() {
-        local query="$1"
-        local url="https://s.jina.ai/"
-        local headers=(
-            "Authorization: Bearer ${JINA_API_KEY}"
-            "Content-Type: application/json"
-            "Accept: application/json"
-        )
-        
-        # Make the API call
-        local response=$(curl -X POST "${url}" -H "${headers[@]}" -d "{\"q\":\"${query}\"}" 2>/dev/null)
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to perform search" >&2
-            return 1
-        fi
-        
-        # Pretty-print the JSON response
-        echo "${response}" | jq .
-    }
+    # Make the API call
+    response=$(curl -X POST "https://s.jina.ai/" \
+        -H "Authorization: Bearer ${JINA_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -H "Accept: application/json" \
+        -d "{\"q\":\"${query}\"}" 2>/dev/null) || { echo "Error: Failed to perform search" >&2; exit 1; }
     
-    # Define the read function
-    jina_read() {
-        local url="$1"
-        local headers=(
-            "Authorization: Bearer ${JINA_API_KEY}"
-            "Content-Type: application/json"
-            "Accept: application/json"
-        )
-        
-        # Make the API call
-        local response=$(curl -X POST "https://r.jina.ai/" -H "${headers[@]}" -d "{\"url\":\"${url}\"}" 2>/dev/null)
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to read URL" >&2
-            return 1
-        fi
-        
-        # Extract and print the content
-        echo "${response}" | jq -r '.data.content'
-    }
-}
+    # Pretty-print the JSON response
+    echo "${response}" | jq .
 
-# Example usage:
-# setup_jina
-# jina_search "What is Jina AI?"
-# jina_read "https://jina.ai"
+elif [[ "$1" == "read" ]]; then
+    url="$2"
+    
+    # Get API key directly from pass
+    JINA_API_KEY=$(pass show llm/jina 2>/dev/null) || { echo "Error: Jina API key not found in Pass" >&2; exit 1; }
+    
+    # Make the API call
+    response=$(curl -X POST "https://r.jina.ai/" \
+        -H "Authorization: Bearer ${JINA_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -H "Accept: application/json" \
+        -d "{\"url\":\"${url}\"}" 2>/dev/null) || { echo "Error: Failed to read URL" >&2; exit 1; }
+    
+    # Extract and print the content
+    echo "${response}" | jq -r '.data.content'
+
+else
+    echo "Usage:"
+    echo "  jina search <search terms>"
+    echo "  jina read <url>"
+    exit 1
+fi
 
