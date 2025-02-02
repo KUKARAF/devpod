@@ -63,7 +63,10 @@ RUN cargo install starship
 RUN cargo install zoxide 
 #RUN cargo install memos-cli
 RUN cargo install --locked zellij 
+RUN /root/.cargo/bin/zellij /usr/bin/
+
 RUN cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli 
+RUN /root/.cargo/bin/ya /usr/bin/
 
 RUN mv /root/.local/bin/* /usr/bin/
 
