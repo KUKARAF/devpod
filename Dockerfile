@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     7zip \
     build-essential \
     cmake \
+    clang \
     curl \
     fd-find \
     ffmpeg \
