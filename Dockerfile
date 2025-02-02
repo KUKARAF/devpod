@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y \
     git \
     imagemagick \
     jq \
+    tmsu \
     libatk1.0-dev \
     libcairo2-dev \
     libgtk2.0-dev \
