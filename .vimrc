@@ -1,3 +1,5 @@
+syntax on
+
 " Check for required executables
 if !executable('aider')
     echohl WarningMsg

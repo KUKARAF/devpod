@@ -24,6 +24,8 @@ if [ -d ~/.bashrc.d ]; then
 fi
 unset rc
 
+export PATH=$PATH:~/.config/dotfiles/functions
+
 #. "$HOME/.asdf/asdf.sh"
 #. "$HOME/.asdf/completions/asdf.bash"
 #eval "$(starship init bash)"
