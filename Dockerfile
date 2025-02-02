@@ -43,7 +43,7 @@ RUN apt-get update && apt-get install -y \
     ripgrep \ 
     ruby-dev \
     silversearcher-ag \
-    tmux \
+    pass \
     vim-nox
 
 
