@@ -60,13 +60,15 @@ RUN mv /root/.local/bin/uvx /usr/bin/
 
 #RUN curl -sS https://starship.rs/install.sh | sh
 RUN cargo install starship 
+RUN mv $(which starship) /usr/bin
 RUN cargo install zoxide 
+RUN mv $(which zoxide) /usr/bin
 #RUN cargo install memos-cli
 RUN cargo install --locked zellij 
-RUN /root/.cargo/bin/zellij /usr/bin/
+RUN mv $(which zellij) /usr/bin
 
 RUN cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli 
-RUN /root/.cargo/bin/ya /usr/bin/
+RUN mv $(which ya) /usr/bin
 
 RUN mv /root/.local/bin/* /usr/bin/
 
