@@ -69,6 +69,7 @@ RUN mv $(which zellij) /usr/bin
 
 RUN cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli 
 RUN mv $(which ya) /usr/bin
+RUN mv $(which yazi) /usr/bin
 
 RUN mv /root/.local/bin/* /usr/bin/
 
