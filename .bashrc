@@ -1,44 +1,43 @@
+# .bashrc
+
 # Source global definitions
 if [ -f /etc/bashrc ]; then
     . /etc/bashrc
 fi
 
+# User specific environment
+if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
+    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+fi
+export PATH
 
-# Basic environment
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
+if [ -d ~/.bashrc.d ]; then
+    for rc in ~/.bashrc.d/*; do
+        if [ -f "$rc" ]; then
+            . "$rc"
+        fi
+    done
+fi
+unset rc
+
+#. "$HOME/.asdf/asdf.sh"
+#. "$HOME/.asdf/completions/asdf.bash"
+#eval "$(starship init bash)"
+#export PATH=${PATH}:`go env GOPATH`/bin
+#export OPENAI_API_KEY=$(pass llm/openai)
+export ANTHROPIC_API_KEY=$(pass llm/anthropic)
+export GROQ_API_KEY=$(pass llm/groq)
+
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+alias firefox="flatpak run io.github.zen_browser.zen"
 export EDITOR=vim
-echo 'eval "$(zoxide init bash)"'
 
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+. "$HOME/.cargo/env"
 
-get_keys() {
-  if [ -z "$ANTHROPIC_API_KEY" ]; then
-    export ANTHROPIC_API_KEY=$(pass external/ANTHROPIC_API_KEY)
-  fi
-  if [ -z "$JIRA_API_TOKEN" ]; then
-    export JIRA_API_TOKEN=$(pass tmpl/JIRA_API_TOKEN)
-  fi
-}
-
-fzf_git_setup() {
-  local config_file="$HOME/.config/fzf-git/fzf-git.sh"
-
-  if [ -f "$config_file" ]; then
-    # Load the existing configuration file
-    source "$config_file"
-  else
-    # Download the configuration file from the specified URL
-    mkdir -p "$(dirname "$config_file")"
-    wget -O "$config_file" "https://raw.githubusercontent.com/junegunn/fzf-git.sh/main/fzf-git.sh"
-    source "$config_file"
-  fi
-}
-
-
-PROMPT_COMMAND="get_keys;$PROMPT_COMMAND"
-source ~/.config/fzf-git.sh/fzf-git.sh
-alias docker-compose="docker compose"
-alias docker-login="pass tmpl/corpo | head -n 1 |  docker login af2.corpo.t-mobile.pl -u rkukawski --password-stdin"
-alias kerberos-login="pass tmpl/corpo | head -n 1 | kinit $USER"
-function k8(){
-kubectl --kubeconfig=$(find /home/corpo.t-mobile.pl/rkukawski/.kube -type f -name "*.yaml" -o -name "*.yml" | fzf) -n $(cat ~/.kube/namespaces.list | fzf) $@
-}
-
+. "$HOME/.local/share/../bin/env"
