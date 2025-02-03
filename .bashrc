@@ -1,5 +1,3 @@
-# .bashrc
-
 # Source global definitions
 if [ -f /etc/bashrc ]; then
     . /etc/bashrc
@@ -25,21 +23,26 @@ fi
 unset rc
 
 export PATH=$PATH:~/.config/dotfiles/functions
+export ANTHROPIC_API_KEY=$(pass llm/anthropic)
+export GROQ_API_KEY=$(pass llm/groq)
+export EDITOR=vim
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 #. "$HOME/.asdf/asdf.sh"
 #. "$HOME/.asdf/completions/asdf.bash"
 #eval "$(starship init bash)"
 #export PATH=${PATH}:`go env GOPATH`/bin
 #export OPENAI_API_KEY=$(pass llm/openai)
-export ANTHROPIC_API_KEY=$(pass llm/anthropic)
-export GROQ_API_KEY=$(pass llm/groq)
 
-export GOPATH=$HOME/go
-export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
-alias firefox="flatpak run io.github.zen_browser.zen"
-export EDITOR=vim
+#export GOPATH=$HOME/go
+#export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+#alias firefox="flatpak run io.github.zen_browser.zen"
 
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
-. "$HOME/.cargo/env"
+#. "$HOME/.cargo/env"
 
-. "$HOME/.local/share/../bin/env"
+#. "$HOME/.local/share/../bin/env"
+#
+#
+
+
+eval "$(starship init bash)"
