@@ -17,7 +17,7 @@
 - [ ] aider via aider
 - [ ] starship binary in bashrc
 - [ ] fzf in bashrc as function?
-- [ ] 
+- [ ] move starship config file into right place
 
 ## Shell Enhancements
 - [ ] Git aliases (gr, gs, ga, gc, gp)
