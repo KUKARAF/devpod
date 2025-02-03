@@ -2,32 +2,23 @@
 
 ## Development Tools
 - python3 with development tools:
-  - black
-  - uv version management 
-  - tools for cli tools like 
-  - posting 
-  - aider 
-  - llm 
+  - [ ] black
 
 ## Vim Configuration
-- Custom vim configuration with plugins:
-  - vim-nix
-  - vim-lastplace
-  - vim-fugitive
-  - vim-commentary
-  - ctrlp-vim
-  - fzf-vim
+- Custom vim configuration with plugins auto install as part of stow somehow?:
+  - [ ] vim-lastplace
+  - [ ] vim-fugitive
+  - [ ] vim-commentary
+  - [ ] ctrlp-vim
+  - [ ] fzf-vim
 
 ## Additional Tools
-- silver-searcher
-- podman
-- nodejs
-- fzf
-- zoxide
-- tmsu
+- [ ] posting via uv
+- [ ] aider via aider
+- [ ] starship binary in bashrc
+- [ ] fzf in bashrc as function?
+- [ ] 
 
 ## Shell Enhancements
-- Git aliases (gs, ga, gc, gp)
-- Advanced prompt with starship
-- zoxide integration
-- fzf key bindings and completion
+- [ ] Git aliases (gr, gs, ga, gc, gp)
+- [ ] fzf key bindings and completion
