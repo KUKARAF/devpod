@@ -27,9 +27,8 @@ augroup END
 
 if executable('ag')
   let g:ackprg = 'ag --vimgrep'
-  nnoremap <leader>a :Ag<CR>                                                                                                                                                                                                                                                                                                   
+  nnoremap <leader>a :Ag<CR>
 endif
-nnoremap <leader>a :Ag<CR>
 set number
 nnoremap <esc> :noh<return><esc>
 nnoremap <esc>^[ <esc>^[
