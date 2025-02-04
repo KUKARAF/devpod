@@ -40,6 +40,8 @@ let $FZF_DEFAULT_COMMAND = 'ag --hidden --ignore .git -g ""'
 nnoremap <silent> <leader>t :Files<CR>
 nnoremap <leader>h :bprevious<CR>
 nnoremap <leader>l :bnext<CR>
+#nnoremap <silent> <leader>h :bprevious<CR>
+#nnoremap <silent> <leader>l :bnext<CR>
 
 
 function! AskQuestion(question)
