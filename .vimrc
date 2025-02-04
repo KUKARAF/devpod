@@ -20,6 +20,7 @@ augroup END
 
 if executable('ag')
   let g:ackprg = 'ag --vimgrep'
+  nnoremap <leader>a :Ag<CR>                                                                                                                                                                                                                                                                                                   
 endif
 set number
 nnoremap <esc> :noh<return><esc>
