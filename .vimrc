@@ -35,15 +35,13 @@ nnoremap <esc>^[ <esc>^[
 nmap <leader>E :exec 'r!'.getline('.')<CR>
 
 set rtp+=~/.fzf
-nnoremap <silent> <Leader>b :Buffers<CR>
+nnoremap <silent> <Leader>b :call fzf#run(fzf#wrap({'source': map(range(1, bufnr('$')), 'bufname(v:val)'), 'sink': 'buffer'}))<CR>
 let $FZF_DEFAULT_COMMAND = 'ag --hidden --ignore .git -g ""'
 nnoremap <silent> <leader>t :Files<CR>
 nnoremap <leader>h :bprevious<CR>
 nnoremap <leader>l :bnext<CR>
-#nnoremap <silent> <leader>h :bprevious<CR>
-#nnoremap <silent> <leader>l :bnext<CR>
-
-
+"  nnoremap <silent> <leader>h :bprevious<CR>
+"  nnoremap <silent> <leader>l :bnext<CR>
 function! AskQuestion(question)
     " Get the current buffer content
     let buffer_content = join(getline(1, '$'), "\n")
