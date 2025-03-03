@@ -5,6 +5,15 @@ set -e
 # Base URL for Greptile API
 BASE_URL="https://api.greptile.com/v2"
 
+# Check if jq is installed and recommend it
+if ! command -v jq &> /dev/null; then
+  echo "Note: Installing 'jq' is recommended for better JSON parsing."
+  echo "You can install it with: sudo apt install jq (Debian/Ubuntu)"
+  echo "                       or: sudo dnf install jq (Fedora)"
+  echo "                       or: brew install jq (macOS with Homebrew)"
+  echo ""
+fi
+
 # Check for required environment variables
 check_env_vars() {
   if [ -z "$GREPTILE_API_KEY" ]; then
@@ -63,11 +72,20 @@ index_repository() {
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
     -H "X-Github-Token: $GITHUB_TOKEN")
   
-  # Extract status information using grep and sed
-  local status=$(echo "$status_response" | grep -o '"status":"[^"]*"' | sed 's/"status":"//;s/"//')
-  local files_processed=$(echo "$status_response" | grep -o '"filesProcessed":[0-9]*' | sed 's/"filesProcessed"://')
-  local num_files=$(echo "$status_response" | grep -o '"numFiles":[0-9]*' | sed 's/"numFiles"://')
-  local sha=$(echo "$status_response" | grep -o '"sha":"[^"]*"' | sed 's/"sha":"//;s/"//')
+  # Check if jq is available
+  if command -v jq &> /dev/null; then
+    # Use jq to extract status information
+    local status=$(echo "$status_response" | jq -r '.status // "unknown"')
+    local files_processed=$(echo "$status_response" | jq -r '.filesProcessed // 0')
+    local num_files=$(echo "$status_response" | jq -r '.numFiles // 0')
+    local sha=$(echo "$status_response" | jq -r '.sha // ""')
+  else
+    # Fallback to grep/sed if jq is not available
+    local status=$(echo "$status_response" | grep -o '"status":"[^"]*"' | sed 's/"status":"//;s/"//')
+    local files_processed=$(echo "$status_response" | grep -o '"filesProcessed":[0-9]*' | sed 's/"filesProcessed"://')
+    local num_files=$(echo "$status_response" | grep -o '"numFiles":[0-9]*' | sed 's/"numFiles"://')
+    local sha=$(echo "$status_response" | grep -o '"sha":"[^"]*"' | sed 's/"sha":"//;s/"//')
+  fi
   
   echo "Repository status: $status"
   echo "Files processed: $files_processed/$num_files"
@@ -107,24 +125,47 @@ query_repositories() {
     -H "Content-Type: application/json" \
     -d "$payload")
   
-  # Extract message and sources
-  local message=$(echo "$response" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"//')
-  
-  echo ""
-  echo "================================================================================"
-  echo "QUERY RESULT:"
-  echo "================================================================================"
-  echo ""
-  echo "$message" | sed 's/\\n/\n/g'
-  
-  # Extract sources (simplified)
-  if echo "$response" | grep -q '"sources":\['; then
+  # Check if jq is available
+  if command -v jq &> /dev/null; then
+    # Use jq to extract and format the message
+    local message=$(echo "$response" | jq -r '.message // "No response received"')
+    
     echo ""
     echo "================================================================================"
-    echo "SOURCES:"
+    echo "QUERY RESULT:"
     echo "================================================================================"
     echo ""
-    echo "$response" | grep -o '"filepath":"[^"]*"' | sed 's/"filepath":"//;s/"//'
+    echo "$message"
+    
+    # Extract sources using jq
+    if echo "$response" | jq -e '.sources' &> /dev/null; then
+      echo ""
+      echo "================================================================================"
+      echo "SOURCES:"
+      echo "================================================================================"
+      echo ""
+      echo "$response" | jq -r '.sources[] | "Repository: \(.repository)\nFile: \(.filepath)\n"'
+    fi
+  else
+    # Fallback to grep/sed if jq is not available
+    local message=$(echo "$response" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"//')
+    
+    echo ""
+    echo "================================================================================"
+    echo "QUERY RESULT:"
+    echo "================================================================================"
+    echo ""
+    echo "$message" | sed 's/\\n/\n/g'
+    
+    # Extract sources (simplified)
+    if echo "$response" | grep -q '"sources":\['; then
+      echo ""
+      echo "================================================================================"
+      echo "SOURCES:"
+      echo "================================================================================"
+      echo ""
+      echo "$response" | grep -o '"filepath":"[^"]*"' | sed 's/"filepath":"//;s/"//'
+    fi
   fi
 }
 
