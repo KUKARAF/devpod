@@ -2,8 +2,18 @@
 
 set -e
 
+# Enable debug mode with DEBUG=1 environment variable
+DEBUG=${DEBUG:-0}
+
 # Base URL for Greptile API
 BASE_URL="https://api.greptile.com/v2"
+
+# Debug function
+debug() {
+  if [ "$DEBUG" -eq 1 ]; then
+    echo "[DEBUG] $1"
+  fi
+}
 
 # Check if jq is installed and recommend it
 if ! command -v jq &> /dev/null; then
@@ -34,19 +44,25 @@ check_env_vars() {
 # Function to URL encode a string
 urlencode() {
   local string="$1"
-  local strlen=${#string}
-  local encoded=""
-  local pos c o
-  
-  for (( pos=0 ; pos<strlen ; pos++ )); do
-    c=${string:$pos:1}
-    case "$c" in
-      [-_.~a-zA-Z0-9] ) o="${c}" ;;
-      * )               printf -v o '%%%02x' "'$c"
-    esac
-    encoded+="${o}"
-  done
-  echo "${encoded}"
+  # Use Python if available for more reliable URL encoding
+  if command -v python3 &> /dev/null; then
+    python3 -c "import urllib.parse; print(urllib.parse.quote('$string', safe=''))"
+  else
+    # Fallback to bash implementation
+    local strlen=${#string}
+    local encoded=""
+    local pos c o
+    
+    for (( pos=0 ; pos<strlen ; pos++ )); do
+      c=${string:$pos:1}
+      case "$c" in
+        [-_.~a-zA-Z0-9] ) o="${c}" ;;
+        * )               printf -v o '%%%02x' "'$c"
+      esac
+      encoded+="${o}"
+    done
+    echo "${encoded}"
+  fi
 }
 
 # Function to index a repository
@@ -70,19 +86,39 @@ index_repository() {
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
     -H "X-Github-Token: $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "$payload")
+    --data-raw "$payload")
   
   # Extract response body
   local response_body="$response"
   
+  echo "Full response: $response_body"
+  
   # Check for errors in the response
-  if echo "$response_body" | grep -q '"error"'; then
-    local error=$(echo "$response_body" | grep -o '"error":"[^"]*"' | sed 's/"error":"//;s/"//')
-    echo "Error: $error"
+  if echo "$response_body" | grep -q '"error"' || echo "$response_body" | grep -q '"message"'; then
+    if echo "$response_body" | grep -q '"error"'; then
+      local error=$(echo "$response_body" | grep -o '"error":"[^"]*"' | sed 's/"error":"//;s/"//')
+      echo "Error: $error"
+    elif echo "$response_body" | grep -q '"message"'; then
+      local message=$(echo "$response_body" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"//')
+      echo "Message: $message"
+    fi
+    
+    echo ""
+    echo "This could be due to:"
+    echo "1. Invalid GitHub token (check if it has the 'repo' scope)"
+    echo "2. Repository doesn't exist or you don't have access to it"
+    echo "3. API rate limits"
+    echo ""
+    echo "Try with a different repository or check your credentials."
     return 1
   fi
   
-  echo "Response: $response_body"
+  if echo "$response_body" | grep -q '"response"'; then
+    local success_msg=$(echo "$response_body" | grep -o '"response":"[^"]*"' | sed 's/"response":"//;s/"//')
+    echo "Success: $success_msg"
+  else
+    echo "Response: $response_body"
+  fi
   
   # Check repository status
   local repo_id=$(urlencode "github:$branch:$repo")
@@ -91,7 +127,8 @@ index_repository() {
   local status_response
   status_response=$(curl -s -X GET "$BASE_URL/repositories/$repo_id" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
-    -H "X-Github-Token: $GITHUB_TOKEN")
+    -H "X-Github-Token: $GITHUB_TOKEN" \
+    -H "Content-Type: application/json")
   
   # Extract HTTP response body (remove headers)
   local status_body=$(echo "$status_response" | sed -n '/^{/,$p')
@@ -159,7 +196,7 @@ query_repositories() {
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
     -H "X-Github-Token: $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "$payload")
+    --data-raw "$payload")
   
   # Extract HTTP response body (remove headers)
   local http_body=$(echo "$response" | sed -n '/^{/,$p')
@@ -247,11 +284,14 @@ query_repositories() {
 
 # Function to display help
 show_help() {
-  echo "Usage: greptile COMMAND [OPTIONS]"
+  echo "Usage: greptile [--debug] COMMAND [OPTIONS]"
   echo ""
   echo "Commands:"
   echo "  load    Load and query repositories"
   echo "  index   Index a repository"
+  echo ""
+  echo "Global Options:"
+  echo "  --debug                 Enable debug mode for troubleshooting"
   echo ""
   echo "Options for 'load':"
   echo "  -r, --repository REPO   Repository to query (can be specified multiple times)"
@@ -265,10 +305,18 @@ show_help() {
   echo "Environment variables:"
   echo "  GREPTILE_API_KEY        Your Greptile API key"
   echo "  GITHUB_TOKEN            Your GitHub token"
+  echo "  DEBUG                   Set to 1 to enable debug mode"
 }
 
 # Main function
 main() {
+  # Check for debug flag
+  if [ "$1" = "--debug" ]; then
+    DEBUG=1
+    shift
+    debug "Debug mode enabled"
+  fi
+  
   check_env_vars
   
   local command="$1"
