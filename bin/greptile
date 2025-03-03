@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Base URL for Greptile API
+BASE_URL="https://api.greptile.com/v2"
+
+# Check for required environment variables
+check_env_vars() {
+  if [ -z "$GREPTILE_API_KEY" ]; then
+    echo "Error: GREPTILE_API_KEY environment variable is not set"
+    exit 1
+  fi
+  
+  if [ -z "$GITHUB_TOKEN" ]; then
+    echo "Error: GITHUB_TOKEN environment variable is not set"
+    exit 1
+  fi
+}
+
+# Function to URL encode a string
+urlencode() {
+  local string="$1"
+  local strlen=${#string}
+  local encoded=""
+  local pos c o
+  
+  for (( pos=0 ; pos<strlen ; pos++ )); do
+    c=${string:$pos:1}
+    case "$c" in
+      [-_.~a-zA-Z0-9] ) o="${c}" ;;
+      * )               printf -v o '%%%02x' "'$c"
+    esac
+    encoded+="${o}"
+  done
+  echo "${encoded}"
+}
+
+# Function to index a repository
+index_repository() {
+  local repo="$1"
+  local branch="${2:-main}"
+  
+  echo "Indexing repository: $repo (branch: $branch)..."
+  
+  # Create JSON payload
+  local payload="{\"remote\":\"github\",\"repository\":\"$repo\",\"branch\":\"$branch\"}"
+  
+  # Make API request to index repository
+  local response
+  response=$(curl -s -X POST "$BASE_URL/repositories" \
+    -H "Authorization: Bearer $GREPTILE_API_KEY" \
+    -H "X-Github-Token: $GITHUB_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$payload")
+  
+  echo "Response: $response"
+  
+  # Check repository status
+  local repo_id=$(urlencode "github:$branch:$repo")
+  local status_response
+  status_response=$(curl -s -X GET "$BASE_URL/repositories/$repo_id" \
+    -H "Authorization: Bearer $GREPTILE_API_KEY" \
+    -H "X-Github-Token: $GITHUB_TOKEN")
+  
+  # Extract status information using grep and sed
+  local status=$(echo "$status_response" | grep -o '"status":"[^"]*"' | sed 's/"status":"//;s/"//')
+  local files_processed=$(echo "$status_response" | grep -o '"filesProcessed":[0-9]*' | sed 's/"filesProcessed"://')
+  local num_files=$(echo "$status_response" | grep -o '"numFiles":[0-9]*' | sed 's/"numFiles"://')
+  local sha=$(echo "$status_response" | grep -o '"sha":"[^"]*"' | sed 's/"sha":"//;s/"//')
+  
+  echo "Repository status: $status"
+  echo "Files processed: $files_processed/$num_files"
+  
+  if [ -n "$sha" ]; then
+    echo "Repository is indexed and ready to be queried!"
+  else
+    echo "Repository indexing is in progress. You can query it once indexing is complete."
+  fi
+}
+
+# Function to query repositories
+query_repositories() {
+  local query="$1"
+  local branch="${2:-main}"
+  shift 2
+  
+  # Build repositories JSON array
+  local repos_json=""
+  for repo in "$@"; do
+    if [ -n "$repos_json" ]; then
+      repos_json+=","
+    fi
+    repos_json+="{\"remote\":\"github\",\"repository\":\"$repo\",\"branch\":\"$branch\"}"
+  done
+  
+  # Create JSON payload
+  local payload="{\"messages\":[{\"content\":\"$query\",\"role\":\"user\"}],\"repositories\":[$repos_json],\"sessionId\":\"cli-session\"}"
+  
+  echo "Querying repositories with: \"$query\"..."
+  
+  # Make API request to query repositories
+  local response
+  response=$(curl -s -X POST "$BASE_URL/query" \
+    -H "Authorization: Bearer $GREPTILE_API_KEY" \
+    -H "X-Github-Token: $GITHUB_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$payload")
+  
+  # Extract message and sources
+  local message=$(echo "$response" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"//')
+  
+  echo ""
+  echo "================================================================================"
+  echo "QUERY RESULT:"
+  echo "================================================================================"
+  echo ""
+  echo "$message" | sed 's/\\n/\n/g'
+  
+  # Extract sources (simplified)
+  if echo "$response" | grep -q '"sources":\['; then
+    echo ""
+    echo "================================================================================"
+    echo "SOURCES:"
+    echo "================================================================================"
+    echo ""
+    echo "$response" | grep -o '"filepath":"[^"]*"' | sed 's/"filepath":"//;s/"//'
+  fi
+}
+
+# Function to display help
+show_help() {
+  echo "Usage: greptile COMMAND [OPTIONS]"
+  echo ""
+  echo "Commands:"
+  echo "  load    Load and query repositories"
+  echo "  index   Index a repository"
+  echo ""
+  echo "Options for 'load':"
+  echo "  -r, --repository REPO   Repository to query (can be specified multiple times)"
+  echo "  -b, --branch BRANCH     Branch to query (default: main)"
+  echo "  QUERY                   Query to run against the repositories"
+  echo ""
+  echo "Options for 'index':"
+  echo "  -r, --repository REPO   Repository to index (format: owner/repo)"
+  echo "  -b, --branch BRANCH     Branch to index (default: main)"
+  echo ""
+  echo "Environment variables:"
+  echo "  GREPTILE_API_KEY        Your Greptile API key"
+  echo "  GITHUB_TOKEN            Your GitHub token"
+}
+
+# Main function
+main() {
+  check_env_vars
+  
+  local command="$1"
+  shift
+  
+  case "$command" in
+    load)
+      local repositories=()
+      local branch="main"
+      local query=""
+      
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          -r|--repository)
+            repositories+=("$2")
+            shift 2
+            ;;
+          -b|--branch)
+            branch="$2"
+            shift 2
+            ;;
+          *)
+            query="$1"
+            shift
+            ;;
+        esac
+      done
+      
+      if [ ${#repositories[@]} -eq 0 ]; then
+        echo "Error: No repositories specified"
+        show_help
+        exit 1
+      fi
+      
+      if [ -z "$query" ]; then
+        echo "Error: No query specified"
+        show_help
+        exit 1
+      fi
+      
+      query_repositories "$query" "$branch" "${repositories[@]}"
+      ;;
+      
+    index)
+      local repository=""
+      local branch="main"
+      
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          -r|--repository)
+            repository="$2"
+            shift 2
+            ;;
+          -b|--branch)
+            branch="$2"
+            shift 2
+            ;;
+          *)
+            shift
+            ;;
+        esac
+      done
+      
+      if [ -z "$repository" ]; then
+        echo "Error: No repository specified"
+        show_help
+        exit 1
+      fi
+      
+      index_repository "$repository" "$branch"
+      ;;
+      
+    help|--help|-h)
+      show_help
+      ;;
+      
+    *)
+      echo "Error: Unknown command '$command'"
+      show_help
+      exit 1
+      ;;
+  esac
+}
+
+# Run main function
+main "$@"
