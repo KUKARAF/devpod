@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export OPENAI_API_KEY=$(pass llm/openai)
+export ANTHROPIC_API_KEY=$(pass llm/anthropic)
+export GROQ_API_KEY=$(pass llm/groq)
