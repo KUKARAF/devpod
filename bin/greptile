@@ -2,27 +2,8 @@
 
 set -e
 
-# Enable debug mode with DEBUG=1 environment variable
-DEBUG=${DEBUG:-0}
-
 # Base URL for Greptile API
 BASE_URL="https://api.greptile.com/v2"
-
-# Debug function
-debug() {
-  if [ "$DEBUG" -eq 1 ]; then
-    echo "[DEBUG] $1"
-  fi
-}
-
-# Check if jq is installed and recommend it
-if ! command -v jq &> /dev/null; then
-  echo "Note: Installing 'jq' is recommended for better JSON parsing."
-  echo "You can install it with: sudo apt install jq (Debian/Ubuntu)"
-  echo "                       or: sudo dnf install jq (Fedora)"
-  echo "                       or: brew install jq (macOS with Homebrew)"
-  echo ""
-fi
 
 # Check for required environment variables
 check_env_vars() {
@@ -35,34 +16,12 @@ check_env_vars() {
     echo "Error: GITHUB_TOKEN environment variable is not set"
     exit 1
   fi
-  
-  echo "Environment variables:"
-  echo "GREPTILE_API_KEY is set (${#GREPTILE_API_KEY} characters)"
-  echo "GITHUB_TOKEN is set (${#GITHUB_TOKEN} characters)"
 }
 
 # Function to URL encode a string
 urlencode() {
   local string="$1"
-  # Use Python if available for more reliable URL encoding
-  if command -v python3 &> /dev/null; then
-    python3 -c "import urllib.parse; print(urllib.parse.quote('$string', safe=''))"
-  else
-    # Fallback to bash implementation
-    local strlen=${#string}
-    local encoded=""
-    local pos c o
-    
-    for (( pos=0 ; pos<strlen ; pos++ )); do
-      c=${string:$pos:1}
-      case "$c" in
-        [-_.~a-zA-Z0-9] ) o="${c}" ;;
-        * )               printf -v o '%%%02x' "'$c"
-      esac
-      encoded+="${o}"
-    done
-    echo "${encoded}"
-  fi
+  python3 -c "import urllib.parse; print(urllib.parse.quote('$string'))"
 }
 
 # Function to index a repository
@@ -76,95 +35,23 @@ index_repository() {
   local payload="{\"remote\":\"github\",\"repository\":\"$repo\",\"branch\":\"$branch\"}"
   
   # Make API request to index repository
-  echo "Sending request to $BASE_URL/repositories"
-  echo "Payload: $payload"
-  echo "Using GREPTILE_API_KEY: ${GREPTILE_API_KEY:0:5}... (truncated for security)"
-  echo "Using GITHUB_TOKEN: ${GITHUB_TOKEN:0:5}... (truncated for security)"
-  
   local response
   response=$(curl -s -X POST "$BASE_URL/repositories" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
     -H "X-Github-Token: $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    --data-raw "$payload")
+    -d "$payload")
   
-  # Extract response body
-  local response_body="$response"
-  
-  echo "Full response: $response_body"
-  
-  # Check for errors in the response
-  if echo "$response_body" | grep -q '"error"' || echo "$response_body" | grep -q '"message"'; then
-    if echo "$response_body" | grep -q '"error"'; then
-      local error=$(echo "$response_body" | grep -o '"error":"[^"]*"' | sed 's/"error":"//;s/"//')
-      echo "Error: $error"
-    elif echo "$response_body" | grep -q '"message"'; then
-      local message=$(echo "$response_body" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"//')
-      echo "Message: $message"
-    fi
-    
-    echo ""
-    echo "This could be due to:"
-    echo "1. Invalid GitHub token (check if it has the 'repo' scope)"
-    echo "2. Repository doesn't exist or you don't have access to it"
-    echo "3. API rate limits"
-    echo ""
-    echo "Try with a different repository or check your credentials."
-    return 1
-  fi
-  
-  if echo "$response_body" | grep -q '"response"'; then
-    local success_msg=$(echo "$response_body" | grep -o '"response":"[^"]*"' | sed 's/"response":"//;s/"//')
-    echo "Success: $success_msg"
-  else
-    echo "Response: $response_body"
-  fi
+  echo "Response: $response"
   
   # Check repository status
   local repo_id=$(urlencode "github:$branch:$repo")
-  echo "Checking repository status: $BASE_URL/repositories/$repo_id"
-  
   local status_response
   status_response=$(curl -s -X GET "$BASE_URL/repositories/$repo_id" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
-    -H "X-Github-Token: $GITHUB_TOKEN" \
-    -H "Content-Type: application/json")
+    -H "X-Github-Token: $GITHUB_TOKEN")
   
-  # Extract HTTP response body (remove headers)
-  local status_body=$(echo "$status_response" | sed -n '/^{/,$p')
-  echo "Status body: $status_body"
-  
-  # Check if jq is available
-  if command -v jq &> /dev/null; then
-    # Use jq to extract status information
-    if echo "$status_body" | jq -e . &> /dev/null; then
-      local status=$(echo "$status_body" | jq -r '.status // "unknown"')
-      local files_processed=$(echo "$status_body" | jq -r '.filesProcessed // 0')
-      local num_files=$(echo "$status_body" | jq -r '.numFiles // 0')
-      local sha=$(echo "$status_body" | jq -r '.sha // ""')
-    else
-      echo "ERROR: Invalid JSON response for status"
-      local status="unknown"
-      local files_processed=0
-      local num_files=0
-      local sha=""
-    fi
-  else
-    # Fallback to grep/sed if jq is not available
-    local status=$(echo "$status_body" | grep -o '"status":"[^"]*"' | sed 's/"status":"//;s/"//' || echo "unknown")
-    local files_processed=$(echo "$status_body" | grep -o '"filesProcessed":[0-9]*' | sed 's/"filesProcessed"://' || echo "0")
-    local num_files=$(echo "$status_body" | grep -o '"numFiles":[0-9]*' | sed 's/"numFiles"://' || echo "0")
-    local sha=$(echo "$status_body" | grep -o '"sha":"[^"]*"' | sed 's/"sha":"//;s/"//' || echo "")
-  fi
-  
-  echo "Repository status: $status"
-  echo "Files processed: $files_processed/$num_files"
-  
-  if [ -n "$sha" ]; then
-    echo "Repository is indexed and ready to be queried!"
-  else
-    echo "Repository indexing is in progress. You can query it once indexing is complete."
-  fi
+  echo "Status: $status_response"
 }
 
 # Function to query repositories
@@ -188,110 +75,48 @@ query_repositories() {
   echo "Querying repositories with: \"$query\"..."
   
   # Make API request to query repositories
-  echo "Sending request to $BASE_URL/query"
-  echo "Payload: $payload"
-  
   local response
   response=$(curl -s -X POST "$BASE_URL/query" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
     -H "X-Github-Token: $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    --data-raw "$payload")
+    -d "$payload")
   
-  # Extract HTTP response body (remove headers)
-  local http_body=$(echo "$response" | sed -n '/^{/,$p')
+  # Check if there's an error
+  if echo "$response" | grep -q '"error"'; then
+    local error=$(echo "$response" | grep -o '"error":"[^"]*"' | sed 's/"error":"//;s/"//')
+    echo "Error: $error"
+    return 1
+  fi
   
-  echo "HTTP body: $http_body"
+  # Extract message
+  local message=$(echo "$response" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"//')
   
-  # Check if jq is available
-  if command -v jq &> /dev/null; then
-    # Use jq to extract and format the message
-    if echo "$http_body" | jq -e . &> /dev/null; then
-      # Check if there's an error message
-      if echo "$http_body" | jq -e '.error' &> /dev/null; then
-        local error=$(echo "$http_body" | jq -r '.error')
-        echo ""
-        echo "================================================================================"
-        echo "ERROR:"
-        echo "================================================================================"
-        echo ""
-        echo "$error"
-        
-        # If the error is about repository not being submitted, suggest indexing
-        if [[ "$error" == *"has not been submitted"* ]]; then
-          echo ""
-          echo "Try indexing the repository first with:"
-          for repo in "$@"; do
-            echo "  ./bin/greptile index -r $repo"
-          done
-        fi
-        return 1
-      fi
-      
-      local message=$(echo "$http_body" | jq -r '.message // "No response received"')
-      
-      echo ""
-      echo "================================================================================"
-      echo "QUERY RESULT:"
-      echo "================================================================================"
-      echo ""
-      echo "$message"
-      
-      # Extract sources using jq
-      if echo "$http_body" | jq -e '.sources' &> /dev/null; then
-        echo ""
-        echo "================================================================================"
-        echo "SOURCES:"
-        echo "================================================================================"
-        echo ""
-        echo "$http_body" | jq -r '.sources[] | "Repository: \(.repository)\nFile: \(.filepath)\n"'
-      fi
-    else
-      echo ""
-      echo "================================================================================"
-      echo "ERROR: Invalid JSON response"
-      echo "================================================================================"
-      echo ""
-      echo "$http_body"
-    fi
-  else
-    # Fallback to grep/sed if jq is not available
-    local message=$(echo "$http_body" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"//')
-    
+  echo ""
+  echo "================================================================================"
+  echo "QUERY RESULT:"
+  echo "================================================================================"
+  echo ""
+  echo "$message" | sed 's/\\n/\n/g'
+  
+  # Extract sources
+  if echo "$response" | grep -q '"sources":\['; then
     echo ""
     echo "================================================================================"
-    echo "QUERY RESULT:"
+    echo "SOURCES:"
     echo "================================================================================"
     echo ""
-    if [ -n "$message" ]; then
-      echo "$message" | sed 's/\\n/\n/g'
-    else
-      echo "No valid response received or unable to parse response:"
-      echo "$http_body"
-    fi
-    
-    # Extract sources (simplified)
-    if echo "$http_body" | grep -q '"sources":\['; then
-      echo ""
-      echo "================================================================================"
-      echo "SOURCES:"
-      echo "================================================================================"
-      echo ""
-      echo "$http_body" | grep -o '"filepath":"[^"]*"' | sed 's/"filepath":"//;s/"//'
-    fi
+    echo "$response" | grep -o '"filepath":"[^"]*"' | sed 's/"filepath":"//;s/"//'
   fi
 }
 
 # Function to display help
 show_help() {
-  echo "Usage: greptile [--debug] COMMAND [OPTIONS]"
+  echo "Usage: greptile COMMAND [OPTIONS]"
   echo ""
   echo "Commands:"
   echo "  load    Load and query repositories"
   echo "  index   Index a repository"
-  echo ""
-  echo "Global Options:"
-  echo "  --debug                 Enable debug mode for troubleshooting"
   echo ""
   echo "Options for 'load':"
   echo "  -r, --repository REPO   Repository to query (can be specified multiple times)"
@@ -305,18 +130,10 @@ show_help() {
   echo "Environment variables:"
   echo "  GREPTILE_API_KEY        Your Greptile API key"
   echo "  GITHUB_TOKEN            Your GitHub token"
-  echo "  DEBUG                   Set to 1 to enable debug mode"
 }
 
 # Main function
 main() {
-  # Check for debug flag
-  if [ "$1" = "--debug" ]; then
-    DEBUG=1
-    shift
-    debug "Debug mode enabled"
-  fi
-  
   check_env_vars
   
   local command="$1"
