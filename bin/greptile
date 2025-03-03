@@ -66,29 +66,35 @@ index_repository() {
   echo "Using GITHUB_TOKEN: ${GITHUB_TOKEN:0:5}... (truncated for security)"
   
   local response
-  response=$(curl -v -X POST "$BASE_URL/repositories" \
+  response=$(curl -s -X POST "$BASE_URL/repositories" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
     -H "X-Github-Token: $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "$payload" 2>&1)
+    -d "$payload")
   
-  echo "Raw response: $response"
+  # Extract response body
+  local response_body="$response"
   
-  echo "Response: $response"
+  # Check for errors in the response
+  if echo "$response_body" | grep -q '"error"'; then
+    local error=$(echo "$response_body" | grep -o '"error":"[^"]*"' | sed 's/"error":"//;s/"//')
+    echo "Error: $error"
+    return 1
+  fi
+  
+  echo "Response: $response_body"
   
   # Check repository status
   local repo_id=$(urlencode "github:$branch:$repo")
   echo "Checking repository status: $BASE_URL/repositories/$repo_id"
   
   local status_response
-  status_response=$(curl -v -X GET "$BASE_URL/repositories/$repo_id" \
+  status_response=$(curl -s -X GET "$BASE_URL/repositories/$repo_id" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
-    -H "X-Github-Token: $GITHUB_TOKEN" 2>&1)
-  
-  echo "Raw status response: $status_response"
+    -H "X-Github-Token: $GITHUB_TOKEN")
   
   # Extract HTTP response body (remove headers)
-  local status_body=$(echo "$status_response" | awk 'BEGIN{flag=0} /^\{/{flag=1} flag')
+  local status_body=$(echo "$status_response" | sed -n '/^{/,$p')
   echo "Status body: $status_body"
   
   # Check if jq is available
@@ -149,16 +155,14 @@ query_repositories() {
   echo "Payload: $payload"
   
   local response
-  response=$(curl -v -X POST "$BASE_URL/query" \
+  response=$(curl -s -X POST "$BASE_URL/query" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
     -H "X-Github-Token: $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "$payload" 2>&1)
-  
-  echo "Raw response: $response"
+    -d "$payload")
   
   # Extract HTTP response body (remove headers)
-  local http_body=$(echo "$response" | awk 'BEGIN{flag=0} /^\{/{flag=1} flag')
+  local http_body=$(echo "$response" | sed -n '/^{/,$p')
   
   echo "HTTP body: $http_body"
   
@@ -166,6 +170,27 @@ query_repositories() {
   if command -v jq &> /dev/null; then
     # Use jq to extract and format the message
     if echo "$http_body" | jq -e . &> /dev/null; then
+      # Check if there's an error message
+      if echo "$http_body" | jq -e '.error' &> /dev/null; then
+        local error=$(echo "$http_body" | jq -r '.error')
+        echo ""
+        echo "================================================================================"
+        echo "ERROR:"
+        echo "================================================================================"
+        echo ""
+        echo "$error"
+        
+        # If the error is about repository not being submitted, suggest indexing
+        if [[ "$error" == *"has not been submitted"* ]]; then
+          echo ""
+          echo "Try indexing the repository first with:"
+          for repo in "$@"; do
+            echo "  ./bin/greptile index -r $repo"
+          done
+        fi
+        return 1
+      fi
+      
       local message=$(echo "$http_body" | jq -r '.message // "No response received"')
       
       echo ""
