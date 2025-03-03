@@ -25,6 +25,10 @@ check_env_vars() {
     echo "Error: GITHUB_TOKEN environment variable is not set"
     exit 1
   fi
+  
+  echo "Environment variables:"
+  echo "GREPTILE_API_KEY is set (${#GREPTILE_API_KEY} characters)"
+  echo "GITHUB_TOKEN is set (${#GITHUB_TOKEN} characters)"
 }
 
 # Function to URL encode a string
@@ -56,35 +60,58 @@ index_repository() {
   local payload="{\"remote\":\"github\",\"repository\":\"$repo\",\"branch\":\"$branch\"}"
   
   # Make API request to index repository
+  echo "Sending request to $BASE_URL/repositories"
+  echo "Payload: $payload"
+  echo "Using GREPTILE_API_KEY: ${GREPTILE_API_KEY:0:5}... (truncated for security)"
+  echo "Using GITHUB_TOKEN: ${GITHUB_TOKEN:0:5}... (truncated for security)"
+  
   local response
-  response=$(curl -s -X POST "$BASE_URL/repositories" \
+  response=$(curl -v -X POST "$BASE_URL/repositories" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
     -H "X-Github-Token: $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "$payload")
+    -d "$payload" 2>&1)
+  
+  echo "Raw response: $response"
   
   echo "Response: $response"
   
   # Check repository status
   local repo_id=$(urlencode "github:$branch:$repo")
+  echo "Checking repository status: $BASE_URL/repositories/$repo_id"
+  
   local status_response
-  status_response=$(curl -s -X GET "$BASE_URL/repositories/$repo_id" \
+  status_response=$(curl -v -X GET "$BASE_URL/repositories/$repo_id" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
-    -H "X-Github-Token: $GITHUB_TOKEN")
+    -H "X-Github-Token: $GITHUB_TOKEN" 2>&1)
+  
+  echo "Raw status response: $status_response"
+  
+  # Extract HTTP response body (remove headers)
+  local status_body=$(echo "$status_response" | awk 'BEGIN{flag=0} /^\{/{flag=1} flag')
+  echo "Status body: $status_body"
   
   # Check if jq is available
   if command -v jq &> /dev/null; then
     # Use jq to extract status information
-    local status=$(echo "$status_response" | jq -r '.status // "unknown"')
-    local files_processed=$(echo "$status_response" | jq -r '.filesProcessed // 0')
-    local num_files=$(echo "$status_response" | jq -r '.numFiles // 0')
-    local sha=$(echo "$status_response" | jq -r '.sha // ""')
+    if echo "$status_body" | jq -e . &> /dev/null; then
+      local status=$(echo "$status_body" | jq -r '.status // "unknown"')
+      local files_processed=$(echo "$status_body" | jq -r '.filesProcessed // 0')
+      local num_files=$(echo "$status_body" | jq -r '.numFiles // 0')
+      local sha=$(echo "$status_body" | jq -r '.sha // ""')
+    else
+      echo "ERROR: Invalid JSON response for status"
+      local status="unknown"
+      local files_processed=0
+      local num_files=0
+      local sha=""
+    fi
   else
     # Fallback to grep/sed if jq is not available
-    local status=$(echo "$status_response" | grep -o '"status":"[^"]*"' | sed 's/"status":"//;s/"//')
-    local files_processed=$(echo "$status_response" | grep -o '"filesProcessed":[0-9]*' | sed 's/"filesProcessed"://')
-    local num_files=$(echo "$status_response" | grep -o '"numFiles":[0-9]*' | sed 's/"numFiles"://')
-    local sha=$(echo "$status_response" | grep -o '"sha":"[^"]*"' | sed 's/"sha":"//;s/"//')
+    local status=$(echo "$status_body" | grep -o '"status":"[^"]*"' | sed 's/"status":"//;s/"//' || echo "unknown")
+    local files_processed=$(echo "$status_body" | grep -o '"filesProcessed":[0-9]*' | sed 's/"filesProcessed"://' || echo "0")
+    local num_files=$(echo "$status_body" | grep -o '"numFiles":[0-9]*' | sed 's/"numFiles"://' || echo "0")
+    local sha=$(echo "$status_body" | grep -o '"sha":"[^"]*"' | sed 's/"sha":"//;s/"//' || echo "")
   fi
   
   echo "Repository status: $status"
@@ -118,53 +145,77 @@ query_repositories() {
   echo "Querying repositories with: \"$query\"..."
   
   # Make API request to query repositories
+  echo "Sending request to $BASE_URL/query"
+  echo "Payload: $payload"
+  
   local response
-  response=$(curl -s -X POST "$BASE_URL/query" \
+  response=$(curl -v -X POST "$BASE_URL/query" \
     -H "Authorization: Bearer $GREPTILE_API_KEY" \
     -H "X-Github-Token: $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "$payload")
+    -d "$payload" 2>&1)
+  
+  echo "Raw response: $response"
+  
+  # Extract HTTP response body (remove headers)
+  local http_body=$(echo "$response" | awk 'BEGIN{flag=0} /^\{/{flag=1} flag')
+  
+  echo "HTTP body: $http_body"
   
   # Check if jq is available
   if command -v jq &> /dev/null; then
     # Use jq to extract and format the message
-    local message=$(echo "$response" | jq -r '.message // "No response received"')
-    
-    echo ""
-    echo "================================================================================"
-    echo "QUERY RESULT:"
-    echo "================================================================================"
-    echo ""
-    echo "$message"
-    
-    # Extract sources using jq
-    if echo "$response" | jq -e '.sources' &> /dev/null; then
+    if echo "$http_body" | jq -e . &> /dev/null; then
+      local message=$(echo "$http_body" | jq -r '.message // "No response received"')
+      
       echo ""
       echo "================================================================================"
-      echo "SOURCES:"
+      echo "QUERY RESULT:"
       echo "================================================================================"
       echo ""
-      echo "$response" | jq -r '.sources[] | "Repository: \(.repository)\nFile: \(.filepath)\n"'
+      echo "$message"
+      
+      # Extract sources using jq
+      if echo "$http_body" | jq -e '.sources' &> /dev/null; then
+        echo ""
+        echo "================================================================================"
+        echo "SOURCES:"
+        echo "================================================================================"
+        echo ""
+        echo "$http_body" | jq -r '.sources[] | "Repository: \(.repository)\nFile: \(.filepath)\n"'
+      fi
+    else
+      echo ""
+      echo "================================================================================"
+      echo "ERROR: Invalid JSON response"
+      echo "================================================================================"
+      echo ""
+      echo "$http_body"
     fi
   else
     # Fallback to grep/sed if jq is not available
-    local message=$(echo "$response" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"//')
+    local message=$(echo "$http_body" | grep -o '"message":"[^"]*"' | sed 's/"message":"//;s/"//')
     
     echo ""
     echo "================================================================================"
     echo "QUERY RESULT:"
     echo "================================================================================"
     echo ""
-    echo "$message" | sed 's/\\n/\n/g'
+    if [ -n "$message" ]; then
+      echo "$message" | sed 's/\\n/\n/g'
+    else
+      echo "No valid response received or unable to parse response:"
+      echo "$http_body"
+    fi
     
     # Extract sources (simplified)
-    if echo "$response" | grep -q '"sources":\['; then
+    if echo "$http_body" | grep -q '"sources":\['; then
       echo ""
       echo "================================================================================"
       echo "SOURCES:"
       echo "================================================================================"
       echo ""
-      echo "$response" | grep -o '"filepath":"[^"]*"' | sed 's/"filepath":"//;s/"//'
+      echo "$http_body" | grep -o '"filepath":"[^"]*"' | sed 's/"filepath":"//;s/"//'
     fi
   fi
 }
