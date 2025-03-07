@@ -50,7 +50,8 @@ RUN apt-get update && apt-get install -y \
 
 # Install uv
 
-
+COPY .vimrc ~
+COPY .basrc ~
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
