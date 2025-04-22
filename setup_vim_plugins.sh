@@ -26,5 +26,6 @@ clone_or_update_plugin "fzf" "https://github.com/junegunn/fzf.vim"
 clone_or_update_plugin "ctrlp" "https://github.com/kien/ctrlp.vim"
 clone_or_update_plugin "commentary" "https://github.com/tpope/vim-commentary"
 clone_or_update_plugin "vim-ai" "https://github.com/madox2/vim-ai.git"
+clone_or_update_plugin "vimwiki.git" "https://github.com/vimwiki/vimwiki.git"
 
 echo "Vim plugins setup complete!"
