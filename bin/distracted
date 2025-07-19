@@ -1,4 +1,91 @@
 #!/bin/bash
 
-# Empty script - functionality moved to pomodoro starship command
-pomodoro starship
+# Distraction tracker script
+# Logs distractions to vimwiki diary with YAML front matter
+
+# Get current date for diary file
+DIARY_DATE=$(date +%Y-%m-%d)
+DIARY_FILE="$HOME/vimwiki/diary/$DIARY_DATE.md"
+
+# Function to update diary file with distraction count
+update_diary() {
+    local count="$1"
+    
+    # Create diary directory if it doesn't exist
+    mkdir -p "$(dirname "$DIARY_FILE")"
+    
+    # If file doesn't exist, create it with YAML front matter
+    if [ ! -f "$DIARY_FILE" ]; then
+        cat > "$DIARY_FILE" << EOF
+---
+distractions: $count
+---
+
+EOF
+        return
+    fi
+    
+    # Check if file has YAML front matter
+    if head -n 1 "$DIARY_FILE" | grep -q "^---$"; then
+        # File has YAML front matter
+        if grep -q "^distractions:" "$DIARY_FILE"; then
+            # Update existing distractions count
+            sed -i "s/^distractions:.*/distractions: $count/" "$DIARY_FILE"
+        else
+            # Add distractions to existing front matter
+            sed -i "/^---$/a distractions: $count" "$DIARY_FILE"
+        fi
+    else
+        # No YAML front matter, add it at the beginning
+        temp_file=$(mktemp)
+        cat > "$temp_file" << EOF
+---
+distractions: $count
+---
+
+EOF
+        cat "$DIARY_FILE" >> "$temp_file"
+        mv "$temp_file" "$DIARY_FILE"
+    fi
+}
+
+# Function to get current distraction count from diary
+get_distraction_count() {
+    if [ ! -f "$DIARY_FILE" ]; then
+        echo "0"
+        return
+    fi
+    
+    local count=$(grep "^distractions:" "$DIARY_FILE" 2>/dev/null | cut -d':' -f2- | tr -d ' ')
+    echo "${count:-0}"
+}
+
+# Function to append distraction text to diary
+append_distraction_text() {
+    local text="$1"
+    
+    # Ensure diary file exists
+    if [ ! -f "$DIARY_FILE" ]; then
+        update_diary "0"
+    fi
+    
+    # Append the distraction text to the end of the file
+    echo "" >> "$DIARY_FILE"
+    echo "**Distraction $(date +%H:%M):** $text" >> "$DIARY_FILE"
+}
+
+# Main functionality
+current_count=$(get_distraction_count)
+new_count=$((current_count + 1))
+
+# Update the count
+update_diary "$new_count"
+
+# If additional text was provided, append it to the file
+if [ $# -gt 0 ]; then
+    distraction_text="$*"
+    append_distraction_text "$distraction_text"
+    echo "Distraction #$new_count logged: $distraction_text"
+else
+    echo "Distraction #$new_count logged"
+fi
