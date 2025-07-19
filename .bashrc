@@ -45,4 +45,27 @@ export EDITOR=vim
 #
 
 
+# Search function that opens cha with searx URL
+search() {
+    local query=""
+    
+    # Check if we have stdin input
+    if [ ! -t 0 ]; then
+        # Read from stdin
+        query=$(cat)
+    elif [ $# -gt 0 ]; then
+        # Use command line arguments
+        query="$*"
+    else
+        echo "Usage: search <query> or echo <query> | search"
+        return 1
+    fi
+    
+    # URL encode the query
+    local encoded_query=$(printf '%s' "$query" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip()))")
+    
+    # Open cha with the searx URL
+    cha "https://searx.osmosis.page/search?q=$encoded_query"
+}
+
 eval "$(starship init bash)"
