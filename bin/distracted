@@ -7,9 +7,49 @@
 DIARY_DATE=$(date +%Y-%m-%d)
 DIARY_FILE="$HOME/vimwiki/diary/$DIARY_DATE.md"
 
-# Function to update diary file with distraction count
+# Function to get distraction count from a diary file
+get_distractions_from_file() {
+    local file="$1"
+    
+    if [ ! -f "$file" ]; then
+        echo "0"
+        return
+    fi
+    
+    local count=$(grep "^distractions:" "$file" 2>/dev/null | cut -d':' -f2- | tr -d ' ')
+    echo "${count:-0}"
+}
+
+# Function to calculate weekly average distractions
+calculate_weekly_average() {
+    local total=0
+    local days_with_data=0
+    
+    # Get the last 7 days (including today)
+    for i in {0..6}; do
+        local date=$(date -d "$i days ago" +%Y-%m-%d)
+        local file="$HOME/vimwiki/diary/$date.md"
+        
+        if [ -f "$file" ]; then
+            local count=$(get_distractions_from_file "$file")
+            total=$((total + count))
+            days_with_data=$((days_with_data + 1))
+        fi
+    done
+    
+    if [ $days_with_data -eq 0 ]; then
+        echo "0"
+    else
+        # Calculate average (rounded to nearest integer)
+        local average=$(( (total + days_with_data / 2) / days_with_data ))
+        echo "$average"
+    fi
+}
+
+# Function to update diary file with distraction count and weekly average
 update_diary() {
     local count="$1"
+    local weekly_avg="$2"
     
     # Create diary directory if it doesn't exist
     mkdir -p "$(dirname "$DIARY_FILE")"
@@ -19,6 +59,7 @@ update_diary() {
         cat > "$DIARY_FILE" << EOF
 ---
 distractions: $count
+distractions_weekly_avg: $weekly_avg
 ---
 
 EOF
@@ -35,12 +76,21 @@ EOF
             # Add distractions to existing front matter
             sed -i "/^---$/a distractions: $count" "$DIARY_FILE"
         fi
+        
+        if grep -q "^distractions_weekly_avg:" "$DIARY_FILE"; then
+            # Update existing weekly average
+            sed -i "s/^distractions_weekly_avg:.*/distractions_weekly_avg: $weekly_avg/" "$DIARY_FILE"
+        else
+            # Add weekly average to existing front matter
+            sed -i "/^distractions:/a distractions_weekly_avg: $weekly_avg" "$DIARY_FILE"
+        fi
     else
         # No YAML front matter, add it at the beginning
         temp_file=$(mktemp)
         cat > "$temp_file" << EOF
 ---
 distractions: $count
+distractions_weekly_avg: $weekly_avg
 ---
 
 EOF
@@ -78,8 +128,11 @@ append_distraction_text() {
 current_count=$(get_distraction_count)
 new_count=$((current_count + 1))
 
-# Update the count
-update_diary "$new_count"
+# Calculate weekly average
+weekly_avg=$(calculate_weekly_average)
+
+# Update the count and weekly average
+update_diary "$new_count" "$weekly_avg"
 
 # If additional text was provided, append it to the file
 if [ $# -gt 0 ]; then
