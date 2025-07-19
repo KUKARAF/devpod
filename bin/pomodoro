@@ -5,8 +5,8 @@
 # Logs completed pomodoros to vimwiki diary
 
 # Default settings
-WORK_DURATION=25
-BREAK_DURATION=5
+WORK_DURATION=60
+BREAK_DURATION=10
 STATE_FILE="$HOME/.pomodoro_state"
 
 # Get current date for diary file
