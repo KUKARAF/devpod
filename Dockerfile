@@ -76,6 +76,11 @@ RUN mv $(which yazi) /usr/bin
 
 RUN mv /root/.local/bin/* /usr/bin/
 
+# Install Chawan AppImage
+RUN curl -OJ https://git.lerch.org/api/packages/lobo/generic/chawan-appimage/9afff2d/Chawan-x86_64-9afff2d.AppImage \
+    && chmod +x Chawan-x86_64-9afff2d.AppImage \
+    && mv Chawan-x86_64-9afff2d.AppImage /usr/bin/chawan
+
 # Install asdf and Node.js
 #RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
 
