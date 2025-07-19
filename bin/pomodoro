@@ -1,27 +1,53 @@
 #!/bin/bash
 
 # Pomodoro timer script
-# Uses environment variables to store state
+# Uses a state file to persist state between invocations
 # Logs completed pomodoros to vimwiki diary
 
 # Default settings
 WORK_DURATION=25
 BREAK_DURATION=5
+STATE_FILE="$HOME/.pomodoro_state"
 
 # Get current date for diary file
 DIARY_DATE=$(date +%Y-%m-%d)
 DIARY_FILE="$HOME/vimwiki/diary/$DIARY_DATE.md"
 
-# Function to get environment variable or default
-get_env_var() {
+# Function to read state from file
+get_state_var() {
     local var_name="$1"
     local default_value="$2"
-    echo "${!var_name:-$default_value}"
+    
+    if [ -f "$STATE_FILE" ]; then
+        local value=$(grep "^${var_name}=" "$STATE_FILE" 2>/dev/null | cut -d'=' -f2-)
+        echo "${value:-$default_value}"
+    else
+        echo "$default_value"
+    fi
 }
 
-# Function to set environment variable
-set_env_var() {
-    export "$1"="$2"
+# Function to set state in file
+set_state_var() {
+    local var_name="$1"
+    local value="$2"
+    
+    # Create state file if it doesn't exist
+    touch "$STATE_FILE"
+    
+    # Remove existing line and add new one
+    grep -v "^${var_name}=" "$STATE_FILE" > "${STATE_FILE}.tmp" 2>/dev/null || true
+    echo "${var_name}=${value}" >> "${STATE_FILE}.tmp"
+    mv "${STATE_FILE}.tmp" "$STATE_FILE"
+}
+
+# Function to remove state variable
+remove_state_var() {
+    local var_name="$1"
+    
+    if [ -f "$STATE_FILE" ]; then
+        grep -v "^${var_name}=" "$STATE_FILE" > "${STATE_FILE}.tmp" 2>/dev/null || true
+        mv "${STATE_FILE}.tmp" "$STATE_FILE"
+    fi
 }
 
 # Function to update diary file with pomodoro count
@@ -68,54 +94,63 @@ EOF
 
 # Function to start pomodoro
 start_pomodoro() {
-    local current_state=$(get_env_var "POMODORO_STATE" "idle")
+    local current_state=$(get_state_var "POMODORO_STATE" "idle")
     
     if [ "$current_state" != "idle" ]; then
         echo "Pomodoro already running. Current state: $current_state"
-        echo "Time remaining: $(get_env_var "POMODORO_TIME" "0") minutes"
+        local current_time=$(get_state_var "POMODORO_TIME" "0")
+        local start_time=$(get_state_var "POMODORO_START_TIME" "0")
+        local elapsed=$(( ($(date +%s) - start_time) / 60 ))
+        local remaining=$((current_time - elapsed))
+        if [ $remaining -lt 0 ]; then
+            remaining=0
+        fi
+        echo "Time remaining: $remaining minutes"
         return 1
     fi
     
-    set_env_var "POMODORO_STATE" "work"
-    set_env_var "POMODORO_TIME" "$WORK_DURATION"
-    set_env_var "POMODORO_START_TIME" "$(date +%s)"
+    set_state_var "POMODORO_STATE" "work"
+    set_state_var "POMODORO_TIME" "$WORK_DURATION"
+    set_state_var "POMODORO_START_TIME" "$(date +%s)"
     
     echo "Starting work session: $WORK_DURATION minutes"
     
     # Background timer
     (
         sleep $((WORK_DURATION * 60))
-        if [ "$(get_env_var "POMODORO_STATE")" = "work" ]; then
+        if [ "$(get_state_var "POMODORO_STATE" "idle")" = "work" ]; then
             # Pomodoro completed
-            local completed=$(get_env_var "POMODORO_COMPLETED" "0")
+            local completed=$(get_state_var "POMODORO_COMPLETED" "0")
             completed=$((completed + 1))
-            set_env_var "POMODORO_COMPLETED" "$completed"
+            set_state_var "POMODORO_COMPLETED" "$completed"
             update_diary "$completed"
             
-            set_env_var "POMODORO_STATE" "break"
-            set_env_var "POMODORO_TIME" "$BREAK_DURATION"
-            set_env_var "POMODORO_START_TIME" "$(date +%s)"
+            set_state_var "POMODORO_STATE" "break"
+            set_state_var "POMODORO_TIME" "$BREAK_DURATION"
+            set_state_var "POMODORO_START_TIME" "$(date +%s)"
             
             echo "Work session completed! Starting break: $BREAK_DURATION minutes"
             echo "Total pomodoros completed today: $completed"
             
             # Break timer
             sleep $((BREAK_DURATION * 60))
-            if [ "$(get_env_var "POMODORO_STATE")" = "break" ]; then
-                set_env_var "POMODORO_STATE" "idle"
-                set_env_var "POMODORO_TIME" "0"
+            if [ "$(get_state_var "POMODORO_STATE" "idle")" = "break" ]; then
+                set_state_var "POMODORO_STATE" "idle"
+                remove_state_var "POMODORO_TIME"
+                remove_state_var "POMODORO_START_TIME"
+                remove_state_var "POMODORO_PID"
                 echo "Break completed! Ready for next pomodoro."
             fi
         fi
     ) &
     
-    set_env_var "POMODORO_PID" "$!"
+    set_state_var "POMODORO_PID" "$!"
 }
 
 # Function to stop pomodoro
 stop_pomodoro() {
-    local current_state=$(get_env_var "POMODORO_STATE" "idle")
-    local pid=$(get_env_var "POMODORO_PID" "")
+    local current_state=$(get_state_var "POMODORO_STATE" "idle")
+    local pid=$(get_state_var "POMODORO_PID" "")
     
     if [ "$current_state" = "idle" ]; then
         echo "No pomodoro running"
@@ -124,40 +159,43 @@ stop_pomodoro() {
     
     if [ -n "$pid" ]; then
         kill "$pid" 2>/dev/null
+        # Also kill any child processes (sleep commands)
+        pkill -P "$pid" 2>/dev/null || true
     fi
     
-    set_env_var "POMODORO_STATE" "idle"
-    set_env_var "POMODORO_TIME" "0"
-    set_env_var "POMODORO_PID" ""
+    set_state_var "POMODORO_STATE" "idle"
+    remove_state_var "POMODORO_TIME"
+    remove_state_var "POMODORO_START_TIME"
+    remove_state_var "POMODORO_PID"
     
     echo "Pomodoro stopped"
 }
 
 # Function to extend current timer
 extend_pomodoro() {
-    local current_state=$(get_env_var "POMODORO_STATE" "idle")
+    local current_state=$(get_state_var "POMODORO_STATE" "idle")
     
     if [ "$current_state" = "idle" ]; then
         echo "No pomodoro running"
         return 1
     fi
     
-    local current_time=$(get_env_var "POMODORO_TIME" "0")
+    local current_time=$(get_state_var "POMODORO_TIME" "0")
     local new_time=$((current_time + 10))
-    set_env_var "POMODORO_TIME" "$new_time"
+    set_state_var "POMODORO_TIME" "$new_time"
     
     echo "Extended timer by 10 minutes. New time: $new_time minutes"
 }
 
 # Function to show status
 show_status() {
-    local current_state=$(get_env_var "POMODORO_STATE" "idle")
-    local current_time=$(get_env_var "POMODORO_TIME" "0")
-    local completed=$(get_env_var "POMODORO_COMPLETED" "0")
+    local current_state=$(get_state_var "POMODORO_STATE" "idle")
+    local current_time=$(get_state_var "POMODORO_TIME" "0")
+    local completed=$(get_state_var "POMODORO_COMPLETED" "0")
     
     echo "Status: $current_state"
     if [ "$current_state" != "idle" ]; then
-        local start_time=$(get_env_var "POMODORO_START_TIME" "0")
+        local start_time=$(get_state_var "POMODORO_START_TIME" "0")
         local elapsed=$(( ($(date +%s) - start_time) / 60 ))
         local remaining=$((current_time - elapsed))
         if [ $remaining -lt 0 ]; then
@@ -170,15 +208,15 @@ show_status() {
 
 # Function to output status for starship prompt
 starship_status() {
-    local current_state=$(get_env_var "POMODORO_STATE" "idle")
+    local current_state=$(get_state_var "POMODORO_STATE" "idle")
     
     if [ "$current_state" = "idle" ]; then
         exit 1  # Don't show anything when idle
     fi
     
     # Calculate remaining time
-    local start_time=$(get_env_var "POMODORO_START_TIME" "0")
-    local current_time=$(get_env_var "POMODORO_TIME" "0")
+    local start_time=$(get_state_var "POMODORO_START_TIME" "0")
+    local current_time=$(get_state_var "POMODORO_TIME" "0")
     
     if [ "$start_time" != "0" ]; then
         local elapsed=$(( ($(date +%s) - start_time) / 60 ))
