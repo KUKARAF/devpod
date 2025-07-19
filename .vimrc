@@ -1,6 +1,13 @@
 syntax on
 
-" Check for required executables
+set nocompatible
+filetype plugin on
+
+
+let g:vimwiki_list = [{'path': '~/vimwiki/',
+                      \ 'syntax': 'markdown', 'ext': 'md'}]
+
+
 if !executable('aider')
     echohl WarningMsg
     echo "Warning: 'aider' command not found. The Aider command will not work."
@@ -90,6 +97,6 @@ function! AiderWithFiles(files)
 endfunction
 
 command! -nargs=? Aider call AiderCommand(<f-args>)
-command! -nargs=1 Ask call AskQuestion(<q-args>)
+command! -nargs=1 LLM call AskQuestion(<q-args>)
 
 
