@@ -168,6 +168,36 @@ show_status() {
     echo "Completed pomodoros today: $completed"
 }
 
+# Function to output status for starship prompt
+starship_status() {
+    local current_state=$(get_env_var "POMODORO_STATE" "idle")
+    
+    if [ "$current_state" = "idle" ]; then
+        exit 1  # Don't show anything when idle
+    fi
+    
+    # Calculate remaining time
+    local start_time=$(get_env_var "POMODORO_START_TIME" "0")
+    local current_time=$(get_env_var "POMODORO_TIME" "0")
+    
+    if [ "$start_time" != "0" ]; then
+        local elapsed=$(( ($(date +%s) - start_time) / 60 ))
+        local remaining=$((current_time - elapsed))
+        if [ $remaining -lt 0 ]; then
+            remaining=0
+        fi
+    else
+        remaining=$current_time
+    fi
+    
+    # Output with appropriate symbol and time
+    if [ "$current_state" = "work" ]; then
+        echo "🍅 ${remaining}m"
+    elif [ "$current_state" = "break" ]; then
+        echo "☕ ${remaining}m"
+    fi
+}
+
 # Main command handling
 case "$1" in
     start)
@@ -182,12 +212,16 @@ case "$1" in
     status)
         show_status
         ;;
+    starship)
+        starship_status
+        ;;
     *)
-        echo "Usage: $0 {start|stop|extend|status}"
-        echo "  start  - Start a new pomodoro work session"
-        echo "  stop   - Stop the current pomodoro"
-        echo "  extend - Add 10 minutes to current timer"
-        echo "  status - Show current status"
+        echo "Usage: $0 {start|stop|extend|status|starship}"
+        echo "  start    - Start a new pomodoro work session"
+        echo "  stop     - Stop the current pomodoro"
+        echo "  extend   - Add 10 minutes to current timer"
+        echo "  status   - Show current status"
+        echo "  starship - Output status for starship prompt"
         exit 1
         ;;
 esac
