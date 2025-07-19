@@ -211,16 +211,17 @@ starship_status() {
     local current_state=$(get_state_var "POMODORO_STATE" "idle")
     
     if [ "$current_state" = "idle" ]; then
-        exit 1  # Don't show anything when idle
+        return 1  # Don't show anything when idle
     fi
     
     # Calculate remaining time
     local start_time=$(get_state_var "POMODORO_START_TIME" "0")
     local current_time=$(get_state_var "POMODORO_TIME" "0")
+    local remaining
     
     if [ "$start_time" != "0" ]; then
         local elapsed=$(( ($(date +%s) - start_time) / 60 ))
-        local remaining=$((current_time - elapsed))
+        remaining=$((current_time - elapsed))
         if [ $remaining -lt 0 ]; then
             remaining=0
         fi

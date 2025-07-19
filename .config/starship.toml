@@ -88,9 +88,10 @@ truncation_symbol = "…/"
 "Developer" = "󰲋 "
 
 [custom.pomodoro]
-command = "pomodoro starship"
+command = "~/bin/pomodoro starship"
 format = "[[ $output ](fg:color_fg0 bg:color_bg3)]($style)"
 style = "bg:color_bg3"
+when = true
 
 
 
