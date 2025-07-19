@@ -91,7 +91,6 @@ truncation_symbol = "…/"
 command = "bin/pomodoro starship"
 format = "[[ $output ](fg:color_fg0 bg:color_bg3)]($style)"
 style = "bg:color_bg3"
-when = """test "$POMODORO_STATE" != "idle" """
 
 
 
