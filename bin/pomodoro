@@ -206,6 +206,22 @@ show_status() {
     echo "Completed pomodoros today: $completed"
 }
 
+# Function to get today's distraction stats from diary file
+get_today_distraction_stats() {
+    local today_date=$(date +%Y-%m-%d)
+    local today_file="$HOME/vimwiki/diary/$today_date.md"
+    
+    if [ ! -f "$today_file" ]; then
+        echo "0 0"
+        return
+    fi
+    
+    local count=$(grep "^distractions:" "$today_file" 2>/dev/null | cut -d':' -f2- | tr -d ' ')
+    local weekly_avg=$(grep "^distractions_weekly_avg:" "$today_file" 2>/dev/null | cut -d':' -f2- | tr -d ' ')
+    
+    echo "${count:-0} ${weekly_avg:-0}"
+}
+
 # Function to output status for starship prompt
 starship_status() {
     local current_state=$(get_state_var "POMODORO_STATE" "idle")
@@ -231,7 +247,10 @@ starship_status() {
     
     # Output with appropriate symbol and time
     if [ "$current_state" = "work" ]; then
-        echo "🍅 ${remaining}m"
+        local distraction_stats=($(get_today_distraction_stats))
+        local today_distractions="${distraction_stats[0]}"
+        local weekly_avg="${distraction_stats[1]}"
+        echo "🍅 ${remaining}m 📱${today_distractions}(${weekly_avg})"
     elif [ "$current_state" = "break" ]; then
         echo "☕ ${remaining}m"
     fi
