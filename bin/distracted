@@ -1,4 +1,4 @@
 #!/bin/bash
 
-# Empty script - functionality moved to bin/pomodoro starship command
-bin/pomodoro starship
+# Empty script - functionality moved to pomodoro starship command
+pomodoro starship
