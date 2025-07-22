@@ -45,6 +45,7 @@ RUN apt-get update && apt-get install -y \
     ruby-dev \
     silversearcher-ag \
     pass \
+    python3-jedi\
     vim-nox
 
 
