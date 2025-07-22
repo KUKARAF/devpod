@@ -111,8 +111,11 @@ function! ExecuteVisualSelection()
     let lines[0] = lines[0][column_start - 1:]
     let selected_text = join(lines, "\n")
     
+    " Expand % to current file path
+    let expanded_text = substitute(selected_text, '%', expand('%'), 'g')
+    
     " Execute the command and get output
-    let output = system(selected_text)
+    let output = system(expanded_text)
     " Remove trailing newline if present
     let output = substitute(output, '\n$', '', '')
     
