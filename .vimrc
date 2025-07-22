@@ -98,7 +98,60 @@ function! AiderWithFiles(files)
     startinsert
 endfunction
 
+function! ExecuteVisualSelection()
+    " Get the visually selected text
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end, column_end] = getpos("'>")[1:2]
+    let lines = getline(line_start, line_end)
+    if len(lines) == 0
+        return
+    endif
+    " Handle partial line selections
+    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
+    let lines[0] = lines[0][column_start - 1:]
+    let selected_text = join(lines, "\n")
+    
+    " Execute the command and get output
+    let output = system(selected_text)
+    " Remove trailing newline if present
+    let output = substitute(output, '\n$', '', '')
+    
+    " Replace the selected text with the output
+    execute line_start . ',' . line_end . 'delete'
+    call append(line_start - 1, split(output, "\n"))
+endfunction
+
+function! QueryVisualSelection()
+    " Get the visually selected text
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end, column_end] = getpos("'>")[1:2]
+    let lines = getline(line_start, line_end)
+    if len(lines) == 0
+        return
+    endif
+    " Handle partial line selections
+    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
+    let lines[0] = lines[0][column_start - 1:]
+    let selected_text = join(lines, "\n")
+    
+    " Determine which command to use
+    let cmd = executable('llm') ? 'llm' : 'ask'
+    
+    " Send to LLM and get response
+    let output = system('echo ' . shellescape(selected_text) . ' | ' . cmd)
+    " Remove trailing newline if present
+    let output = substitute(output, '\n$', '', '')
+    
+    " Replace the selected text with the output
+    execute line_start . ',' . line_end . 'delete'
+    call append(line_start - 1, split(output, "\n"))
+endfunction
+
 command! -nargs=? Aider call AiderCommand(<f-args>)
 command! -nargs=1 LLM call AskQuestion(<q-args>)
+
+" Visual mode mappings
+vnoremap <leader>e :<C-u>call ExecuteVisualSelection()<CR>
+vnoremap <leader>q :<C-u>call QueryVisualSelection()<CR>
 
 
