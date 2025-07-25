@@ -46,6 +46,7 @@ RUN apt-get update && apt-get install -y \
     silversearcher-ag \
     pass \
     python3-jedi\
+    python3-tasklib\
     vim-nox
 
 
