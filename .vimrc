@@ -157,4 +157,9 @@ command! -nargs=1 LLM call AskQuestion(<q-args>)
 vnoremap <leader>e :<C-u>call ExecuteVisualSelection()<CR>
 vnoremap <leader>q :<C-u>call QueryVisualSelection()<CR>
 
+nnoremap <silent> - :Yazi<cr>
+nnoremap <silent> _ :YaziWorkingDirectory<cr>
+
+set autoread
+
 

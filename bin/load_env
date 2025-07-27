@@ -1,7 +1,8 @@
 #!/bin/bash
 
 export OPENAI_API_KEY=$(pass llm/openai)
-export ANTHROPIC_API_KEY=$(pass llm/anthropic)
-export GROQ_API_KEY=$(pass llm/groq)
-export GREPTILE_API_KEY=$(pass llm/greptile)
-export GITHUB_TOKEN=$(pass dev/github)
+#export ANTHROPIC_API_KEY=$(pass llm/anthropic)
+#export GROQ_API_KEY=$(pass llm/groq)
+#export GREPTILE_API_KEY=$(pass llm/greptile)
+#export GITHUB_TOKEN=$(pass dev/github)
+export OPENROUTER_API_KEY=$(pass llm/OPENROUTER_API_KEY)
