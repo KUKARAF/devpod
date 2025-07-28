@@ -150,12 +150,35 @@ function! QueryVisualSelection()
     call append(line_start - 1, split(output, "\n"))
 endfunction
 
+function! ExecutePythonSelection()
+    " Get the visually selected text
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end, column_end] = getpos("'>")[1:2]
+    let lines = getline(line_start, line_end)
+    if len(lines) == 0
+        return
+    endif
+    " Handle partial line selections
+    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
+    let lines[0] = lines[0][column_start - 1:]
+    let selected_text = join(lines, "\n")
+    
+    " Execute the Python code and get output
+    let output = system('python3 -c ' . shellescape(selected_text))
+    " Remove trailing newline if present
+    let output = substitute(output, '\n$', '', '')
+    
+    " Append the output after the selected text
+    call append(line_end, split(output, "\n"))
+endfunction
+
 command! -nargs=? Aider call AiderCommand(<f-args>)
 command! -nargs=1 LLM call AskQuestion(<q-args>)
 
 " Visual mode mappings
 vnoremap <leader>e :<C-u>call ExecuteVisualSelection()<CR>
 vnoremap <leader>q :<C-u>call QueryVisualSelection()<CR>
+vnoremap <leader>p :<C-u>call ExecutePythonSelection()<CR>
 
 nnoremap <silent> - :Yazi<cr>
 nnoremap <silent> _ :YaziWorkingDirectory<cr>
