@@ -161,5 +161,4 @@ nnoremap <silent> - :Yazi<cr>
 nnoremap <silent> _ :YaziWorkingDirectory<cr>
 
 set autoread
-
-
+au CursorHold * checktime  
