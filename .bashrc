@@ -23,8 +23,8 @@ fi
 unset rc
 
 export PATH=$PATH:~/.config/dotfiles/functions
-export ANTHROPIC_API_KEY=$(pass llm/anthropic)
-export GROQ_API_KEY=$(pass llm/groq)
+#export ANTHROPIC_API_KEY=$(pass llm/anthropic)
+#export GROQ_API_KEY=$(pass llm/groq)
 export EDITOR=vim
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
@@ -74,10 +74,7 @@ search() {
     cha "https://searx.osmosis.page/search?q=$encoded_query"
 }
 
-if command -v starship >/dev/null 2>&1; then
-    eval "$(starship init bash)"
-fi
-
-if command -v zoxide >/dev/null 2>&1; then
-    eval "$(zoxide init bash)"
-fi
+eval "$(starship init bash)"
+export PATH=~/.npm-global/bin:$PATH
+eval "$(zoxide init bash)"
+export TERM=alacritty
