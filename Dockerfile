@@ -44,12 +44,12 @@ RUN apt-get update && apt-get install -y \
     ripgrep \ 
     ruby-dev \
     silversearcher-ag \
-    pass \
     python3-jedi\
     vim-nox
 
 
 # Install uv
+# pass 
 
 COPY .vimrc ~
 COPY .basrc ~
@@ -69,7 +69,7 @@ RUN cargo install zoxide
 RUN mv $(which zoxide) /usr/bin
 #RUN cargo install memos-cli
 RUN cargo install --locked zellij 
-RUN mv $(which zellij) /usr/bin
+RUN mv $(which zellij) /usr/bin/dev_zellij
 
 RUN cargo install --locked --git https://github.com/sxyazi/yazi.git yazi-fm yazi-cli 
 RUN mv $(which ya) /usr/bin
