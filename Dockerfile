@@ -25,7 +25,6 @@ RUN apt-get update && apt-get install -y \
     git \
     imagemagick \
     jq \
-    tmsu \
     libatk1.0-dev \
     libcairo2-dev \
     libgtk2.0-dev \
@@ -48,8 +47,8 @@ RUN apt-get update && apt-get install -y \
     vim-nox
 
 
-# Install uv
-# pass 
+# removed packates for now: 
+# pass tmsu \
 
 #COPY .vimrc ~
 #COPY .basrc ~
