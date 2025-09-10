@@ -44,6 +44,12 @@ export EDITOR=vim
 #
 #
 
+if echo "$(zellij ls)" | grep -qE '*\(current\)'; then
+     source ~/zellijrc.sh
+else
+     echo "not in zellij"
+fi
+
 
 # Search function that opens cha with searx URL
 search() {
