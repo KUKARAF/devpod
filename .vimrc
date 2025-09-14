@@ -3,7 +3,6 @@ syntax on
 set nocompatible
 filetype plugin on
 
-#write a poem about ai AI!
 
 let g:vimwiki_list = [{'path': '~/vimwiki/',
                       \ 'syntax': 'markdown', 'ext': 'md'}]
