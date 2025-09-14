@@ -74,6 +74,8 @@ search() {
     cha "https://searx.osmosis.page/search?q=$encoded_query"
 }
 
+export OPENROUTER_API_KEY=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
+
 eval "$(starship init bash)"
 export PATH=~/.npm-global/bin:$PATH
 eval "$(zoxide init bash)"
