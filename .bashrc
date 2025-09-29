@@ -75,4 +75,5 @@ search() {
 }
 
 alias push="git branch --format='%(refname:short)' | fzf | xargs git push origin"
+alias push="git branch --format='%(refname:short)' | fzf | xargs git pull origin --rebase"
 alias add="git ls-files --others --exclude-standard | fzf -m | xargs git add"
