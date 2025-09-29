@@ -74,4 +74,5 @@ search() {
     cha "https://searx.osmosis.page/search?q=$encoded_query"
 }
 
-
+alias push="git branch --format='%(refname:short)' | fzf | xargs git push origin"
+alias add="git ls-files --others --exclude-standard | fzf -m | xargs git add"
