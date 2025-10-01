@@ -15,7 +15,8 @@ curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/setup_vim_p
 
 ### Prerequisites
 - distrobox
--  wget 
+- wget
+- zellij (can be installed inside of container but for performance reasons its better to have it outside)
 
 
 ### Setup and Usage
@@ -38,9 +39,18 @@ The container comes with:
 - UV (fast Python package installer)
 - FZF (fuzzy finder)
 - The Silver Searcher (ag)
-- Shell-ask
-- Zoxide
+
+easy install addins: 
+- llm (
+  ```sh
+  uv tool install llm --with llm-anthropic --with llm-openrouter --with llm-groq --with pip-system-certs --with ijson
+  # pip-system-certs needed to make sure ssl imported from system (see https://github.com/KUKARAF/certificatinator for explenation)
+  ```
 - Aider
+  ```sh
+  uv tool install aider-chat --with pip-system-certs 
+  # pip-system-certs needed to make sure ssl imported from system (see https://github.com/KUKARAF/certificatinator for explenation)
+  ```
 
 ### Features
 - Seamless integration with host system
