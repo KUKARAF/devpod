@@ -46,8 +46,6 @@ export EDITOR=vim
 
 if echo "$(zellij ls)" | grep -qE '\(current\)'; then
      source ~/.zellijrc
-else
-     echo "not in zellij"
 fi
 
 
