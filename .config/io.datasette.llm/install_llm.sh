@@ -1,0 +1,1 @@
+uv tool install llm --with llm-anthropic --with llm-openrouter --with llm-groq --with pip-system-certs --with ijson --with llm-gemini --with llm-tools-exa --with llm-tools-rag --with llm-fragments-github
