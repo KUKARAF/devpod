@@ -8,7 +8,7 @@ This repository contains a collection of vim plugins and a development environme
 
 Run this command to set up vim plugins:
 ```bash
-curl -sSL https://raw.githubusercontent.com/KUKARAF/vim_plugins/main/setup_vim_plugins.sh | bash
+curl -sSL https://github.com/KUKARAF/devpod/blob/f3e9012229ece795b6eb6f66507acf22946b3f35/setup_vim_plugins.sh | bash
 ```
 
 ## Using with Distrobox
