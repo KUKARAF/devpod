@@ -8,3 +8,7 @@ cache-prompts: true
 show-diffs: true
 commit-prompt: "generate a commit message for the following changes, describe why the changes are beeing performed (not what is beeing done) make sure to be short and to the point e.g. refactor: cleanup old unnecesarry code OR Cange: button to blue as per client request"
 #weak-model: openrouter/moonshotai/kimi-k2-0905
+<<<<<<< Updated upstream
+=======
+weak-model: openrouter/meta-llama/llama-4-maverick
+>>>>>>> Stashed changes

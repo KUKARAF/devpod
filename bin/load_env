@@ -1,8 +1,92 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# =============================================================================
+#  load-llm-keys.sh
+#
+#  Reads LLM API credentials from
+#  ~/.config/io.datasette.llm/keys.json
+#  and exports them as environment variables for the various providers.
+#
+#  The script is deliberately simple – most of the variable names are hard‑coded.
+#  If a key is missing in the JSON file the resulting variable will be empty.
+#
+#  Requirements:
+#    • Bash (≥4)
+#    • jq
+# =============================================================================
 
-export OPENAI_API_KEY=$(pass llm/openai)
-#export ANTHROPIC_API_KEY=$(pass llm/anthropic)
-#export GROQ_API_KEY=$(pass llm/groq)
-#export GREPTILE_API_KEY=$(pass llm/greptile)
-#export GITHUB_TOKEN=$(pass dev/github)
-export OPENROUTER_API_KEY=$(pass llm/OPENROUTER_API_KEY)
+set -euo pipefail   # safety: exit on error, treat unset vars as error
+
+# -------------------------------------------------------------------------
+#  Location of the JSON file that holds the secrets.
+# -------------------------------------------------------------------------
+CONFIG_FILE="${HOME}/.config/io.datasette.llm/keys.json"
+
+# -------------------------------------------------------------------------
+#  Guard – make sure the file exists and is readable.
+# -------------------------------------------------------------------------
+if [[ ! -r "${CONFIG_FILE}" ]]; then
+  echo "⚠️  Unable to read config file: ${CONFIG_FILE}" >&2
+  return 1 2>/dev/null || exit 1   # works both when sourced and when executed
+fi
+
+# -------------------------------------------------------------------------
+#  Helper: read a key from the JSON file, return empty string if the key
+#          does not exist or is null.
+# -------------------------------------------------------------------------
+json_val() {
+  local key="$1"
+  jq -r --arg k "$key" '.[$k] // empty' "${CONFIG_FILE}"
+}
+
+# -------------------------------------------------------------------------
+#  Export the environment variables.
+#  Only the keys that actually appear in the JSON will get a value;
+#  the rest will be set to the empty string (which is fine for most SDKs).
+# -------------------------------------------------------------------------
+
+# Anthropic
+export ANTHROPIC_API_KEY="$(json_val "anthropic")"
+
+# OpenAI
+export OPENAI_API_KEY="$(json_val "openai")"
+
+# OpenRouter
+export OPENROUTER_API_KEY="$(json_val "openrouter")"
+
+# Google Gemini
+export GEMINI_API_KEY="$(json_val "gemini")"
+
+# Cerebras
+export CEREBRAS_API_KEY="$(json_val "cerebras")"
+
+# HuggingFace
+export HF_TOKEN="$(json_val "hf_token")"
+
+# Vertex AI (Gemini)
+export VERTEXAI_PROJECT="$(json_val "vertexai_project")"
+export VERTEXAI_LOCATION="$(json_val "vertexai_location")"
+
+# Groq
+export GROQ_API_KEY="$(json_val "groq")"
+
+# AWS Bedrock (Claude)
+export AWS_ACCESS_KEY_ID="$(json_val "aws_access_key_id")"
+export AWS_SECRET_ACCESS_KEY="$(json_val "aws_secret_access_key")"
+export AWS_REGION="$(json_val "aws_region")"
+export AWS_PROFILE="$(json_val "aws_profile")"
+export AWS_BEARER_TOKEN_BEDROCK="$(json_val "aws_bearer_token_bedrock")"
+
+# Azure OpenAI
+export AZURE_OPENAI_API_ENDPOINT="$(json_val "azure_openai_endpoint")"
+export AZURE_OPENAI_API_KEY="$(json_val "azure_openai_key")"
+export AZURE_OPENAI_API_VERSION="$(json_val "azure_openai_version")"
+
+# -------------------------------------------------------------------------
+#  Optional: print a short summary (comment out if you don’t want any output)
+# -------------------------------------------------------------------------
+echo "✅ LLM credentials loaded from ${CONFIG_FILE}"
+echo "   (empty values mean the key was not present in the JSON file)"
+
+# -------------------------------------------------------------------------
+#  End of script
+# -------------------------------------------------------------------------
