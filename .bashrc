@@ -143,3 +143,4 @@ if ! shopt -oq posix; then
 fi
 
 . "$HOME/.local/bin/env"
+eval "$(mise activate bash)"
