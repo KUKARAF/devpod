@@ -1,0 +1,20 @@
+#!/bin/bash
+# Rotate screen to the right
+
+# Read current transform from monitors.conf
+current_transform=$(grep "transform," ~/.config/hypr/monitors.conf | sed 's/.*transform,\([0-9]\).*/\1/')
+
+# Calculate next rotation: 0 -> 1 -> 2 -> 3 -> 0
+case $current_transform in
+    0) next_transform=1 ;;  # normal -> right
+    1) next_transform=2 ;;  # right -> inverted
+    2) next_transform=3 ;;  # inverted -> left
+    3) next_transform=0 ;;  # left -> normal
+    *) next_transform=1 ;;   # default to right
+esac
+
+# Update monitors.conf with sed
+sed -i 's/\(.*transform,\)[0-9]/\1'$next_transform'/' ~/.config/hypr/monitors.conf
+
+# Reload Hyprland to apply changes
+hyprctl reload
