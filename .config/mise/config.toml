@@ -1,12 +1,14 @@
 [tools]
 go = "latest"
-node = "latest"
-#python = "latest"
+#node = "latest" probs best to use bun instead0
+#python = "latest" we want to use uv
 opencode = "latest"
 openspec = "latest"
 yt-dlp = "latest"
 zellij = "latest"
 zoxide = "latest"
-#ag = "latest"
+#ag = "latest" doesnt build for some reason
 uv = "latest"
 gh = "latest"
+bun = "latest"
+vim = "latest"
