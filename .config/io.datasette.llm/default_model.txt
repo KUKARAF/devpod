@@ -1,1 +1,1 @@
-openrouter/openai/gpt-5-codex
+groq/openai/gpt-oss-120b
