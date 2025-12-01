@@ -16,8 +16,17 @@ esac
 # Update monitors.conf with sed
 sed -i 's/\(.*transform,\)[0-9]/\1'$next_transform'/' ~/.config/hypr/monitors.conf
 
-# Rotate touch device
-hyprctl keyword input:touchdevice:transform $next_transform
+# Get all touch devices and apply transform to each
+hyprctl devices | grep -A 10 "Touch" | grep "name:" | awk '{print $2}' | while read device; do
+    echo "Rotating touch device: $device"
+    hyprctl keyword "device:$device:transform" $next_transform
+done
+
+# Also try to find stylus devices
+hyprctl devices | grep -A 10 -i "stylus" | grep "name:" | awk '{print $2}' | while read device; do
+    echo "Rotating stylus device: $device"
+    hyprctl keyword "device:$device:transform" $next_transform
+done
 
 # Reload Hyprland to apply changes
 hyprctl reload
