@@ -16,12 +16,10 @@ esac
 # Update monitors.conf with sed
 sed -i 's/\(.*transform,\)[0-9]/\1'$next_transform'/' ~/.config/hypr/monitors.conf
 
-# Hardcoded device names for rotation
-echo "Rotating touch device: wacom-pen-and-multitouch-sensor-finger"
-hyprctl keyword "device:wacom-pen-and-multitouch-sensor-finger:transform" $next_transform
-
-echo "Rotating tablet device: wacom-pen-and-multitouch-sensor-pen"
-hyprctl keyword "device:wacom-pen-and-multitouch-sensor-pen:transform" $next_transform
+# Apply transform to specific devices
+echo "Setting transform for touch and tablet devices to $next_transform"
+hyprctl keyword input:touchdevice:transform $next_transform
+hyprctl keyword input:tablet:transform $next_transform
 
 # Reload Hyprland to apply changes
 hyprctl reload
