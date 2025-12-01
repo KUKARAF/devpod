@@ -16,5 +16,8 @@ esac
 # Update monitors.conf with sed
 sed -i 's/\(.*transform,\)[0-9]/\1'$next_transform'/' ~/.config/hypr/monitors.conf
 
+# Rotate touch device
+hyprctl keyword input:touchdevice:transform $next_transform
+
 # Reload Hyprland to apply changes
 hyprctl reload
