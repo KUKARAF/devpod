@@ -22,9 +22,9 @@ hyprctl devices | grep -A 10 "Touch" | grep "name:" | awk '{print $2}' | while r
     hyprctl keyword "device:$device:transform" $next_transform
 done
 
-# Also try to find stylus devices
-hyprctl devices | grep -A 10 -i "stylus" | grep "name:" | awk '{print $2}' | while read device; do
-    echo "Rotating stylus device: $device"
+# Get all tablet devices (which includes the stylus) and apply transform to each
+hyprctl devices | grep -A 10 "Tablets" | grep "name:" | awk '{print $2}' | while read device; do
+    echo "Rotating tablet device: $device"
     hyprctl keyword "device:$device:transform" $next_transform
 done
 
