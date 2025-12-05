@@ -28,8 +28,6 @@ export PATH=$PATH:~/.config/dotfiles/functions
 export EDITOR=vim
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
-#. "$HOME/.asdf/asdf.sh"
-#. "$HOME/.asdf/completions/asdf.bash"
 #eval "$(starship init bash)"
 #export PATH=${PATH}:`go env GOPATH`/bin
 #export OPENAI_API_KEY=$(pass llm/openai)
@@ -75,3 +73,7 @@ search() {
 alias push="git branch --format='%(refname:short)' | fzf | xargs git push origin"
 alias pull="git branch --format='%(refname:short)' | fzf | xargs git pull origin --rebase"
 alias add="git ls-files --others --exclude-standard | fzf -m | xargs git add"
+
+# opencode
+export PATH=/home/rafa/.opencode/bin:$PATH
+eval "$(/home/rafa/.local/bin/mise activate bash)"
