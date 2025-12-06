@@ -2,6 +2,7 @@ syntax on
 
 set nocompatible
 filetype plugin on
+let $PATH = $HOME . '/.local/share/mise/shims:' . $PATH
 
 
 let g:vimwiki_list = [{'path': '~/vimwiki/',
@@ -155,7 +156,8 @@ command! -nargs=1 LLM call AskQuestion(<q-args>)
 vnoremap <leader>e :<C-u>call ExecuteVisualSelection()<CR>
 vnoremap <leader>q :<C-u>call QueryVisualSelection()<CR>
 vnoremap <leader>p :<C-u>call ExecutePythonSelection()<CR>
-
+nnoremap <silent> <C-v> :vsplit \| :Yazi<cr>
+const g:yazi_exec_on_open = 'tabnew'      " default 'edit'
 nnoremap <silent> - :Yazi<cr>
 nnoremap <silent> _ :YaziWorkingDirectory<cr>
 

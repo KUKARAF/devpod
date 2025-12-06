@@ -3,7 +3,7 @@ read:
 
 vim: false
 detect-urls: false
-model: openrouter/deepseek/deepseek-v3.2-exp
+model: codestral/codestral-latest
 cache-prompts: true
 show-diffs: false
-#weak-model: openrouter/moonshotai/kimi-k2-0905
+weak-model: groq/openai/gpt-oss-20b
