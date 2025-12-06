@@ -85,7 +85,7 @@ alias push="git branch --format='%(refname:short)' | fzf | xargs git push origin
 alias pull="git branch --format='%(refname:short)' | fzf | xargs git pull origin --rebase"
 alias add="git ls-files --others --exclude-standard | fzf -m | xargs git add"
 
-eval "$($HOME/.local/bin/mise activate bash)" #if this command fails try again with /usr/bin/mise AI!
+eval "$($HOME/.local/bin/mise activate bash)" || eval "$(/usr/bin/mise activate bash)" #if this command fails try again with /usr/bin/mise AI!
 if [ "$color_prompt" = yes ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
