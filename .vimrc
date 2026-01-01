@@ -68,7 +68,8 @@ function! AskQuestion(question)
 endfunction
 
 function! VibeCommand(...)
-    let cmd = 'zellij run -- vibe web --hostname 0.0.0.0 --port 7777'
+    " Run the 'vibe' command without additional flags
+    let cmd = 'vibe'
     let buf = term_start(cmd, {'term_rows': &lines, 'term_cols': &columns, 'vertical': 0, 'exit_cb': {->execute(['bd!', 'bufdo e!'])}})
     " Switch to terminal mode
     startinsert
