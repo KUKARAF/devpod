@@ -9,9 +9,9 @@ let g:vimwiki_list = [{'path': '~/vimwiki/',
                       \ 'syntax': 'markdown', 'ext': 'md'}]
 
 
-if !executable('opencode')
+if !executable('vibe')
     echohl WarningMsg
-    echo "Warning: 'opencode' command not found. The :Opencode command will not work."
+    echo "Warning: 'vibe' command not found. The :Vibe command will not work."
     echohl None
 endif
 
@@ -67,8 +67,8 @@ function! AskQuestion(question)
     call delete(temp_file)
 endfunction
 
-function! OpencodeCommand(...)
-    let cmd = 'zellij run -- opencode web --hostname 0.0.0.0 --port 7777'
+function! VibeCommand(...)
+    let cmd = 'zellij run -- vibe web --hostname 0.0.0.0 --port 7777'
     let buf = term_start(cmd, {'term_rows': &lines, 'term_cols': &columns, 'vertical': 0, 'exit_cb': {->execute(['bd!', 'bufdo e!'])}})
     " Switch to terminal mode
     startinsert
@@ -149,7 +149,7 @@ function! ExecutePythonSelection()
     call append(line_end, split(output, "\n"))
 endfunction
 
-command! -nargs=? Opencode call OpencodeCommand(<f-args>)
+command! -nargs=? Vibe call VibeCommand(<f-args>)
 command! -nargs=1 LLM call AskQuestion(<q-args>)
 
 " Visual mode mappings
