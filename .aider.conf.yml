@@ -3,7 +3,9 @@ read:
 
 vim: false
 detect-urls: false
-model: codestral/codestral-latest
+#model: codestral/codestral-latest
+#model: groq/openai/gpt-oss-120b
+model: openrouter/moonshotai/kimi-k2-thinking
 cache-prompts: true
-show-diffs: false
+show-diffs: true
 weak-model: groq/openai/gpt-oss-20b

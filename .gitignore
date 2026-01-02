@@ -2,4 +2,4 @@
 logs.db
 .env
 keys.json
-.env
+openrouter_models.json
