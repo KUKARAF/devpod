@@ -5,7 +5,8 @@ vim: false
 detect-urls: false
 #model: codestral/codestral-latest
 #model: groq/openai/gpt-oss-120b
-model: openrouter/moonshotai/kimi-k2-thinking
+#model: openrouter/moonshotai/kimi-k2-thinking
+model: groq/moonshotai/kimi-k2-instruct-0905
 cache-prompts: true
 show-diffs: true
 weak-model: groq/openai/gpt-oss-20b
