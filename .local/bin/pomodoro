@@ -256,6 +256,37 @@ starship_status() {
     fi
 }
 
+# Function to output status for waybar
+waybar_status() {
+    local current_state=$(get_state_var "POMODORO_STATE" "idle")
+    
+    if [ "$current_state" = "idle" ]; then
+        return 1  # Return failure when idle so it can be used with ||
+    fi
+    
+    # Calculate remaining time
+    local start_time=$(get_state_var "POMODORO_START_TIME" "0")
+    local current_time=$(get_state_var "POMODORO_TIME" "0")
+    local remaining
+    
+    if [ "$start_time" != "0" ]; then
+        local elapsed=$(( ($(date +%s) - start_time) / 60 ))
+        remaining=$((current_time - elapsed))
+        if [ $remaining -lt 0 ]; then
+            remaining=0
+        fi
+    else
+        remaining=$current_time
+    fi
+    
+    # Output with appropriate symbol and time
+    if [ "$current_state" = "work" ]; then
+        echo "🍅 ${remaining}m"
+    elif [ "$current_state" = "break" ]; then
+        echo "☕ ${remaining}m"
+    fi
+}
+
 # Main command handling
 case "$1" in
     start)
@@ -273,13 +304,17 @@ case "$1" in
     starship)
         starship_status
         ;;
+    waybar)
+        waybar_status
+        ;;
     *)
-        echo "Usage: $0 {start|stop|extend|status|starship}"
+        echo "Usage: $0 {start|stop|extend|status|starship|waybar}"
         echo "  start    - Start a new pomodoro work session"
         echo "  stop     - Stop the current pomodoro"
         echo "  extend   - Add 10 minutes to current timer"
         echo "  status   - Show current status"
         echo "  starship - Output status for starship prompt"
+        echo "  waybar   - Output status for waybar (returns failure when idle)"
         exit 1
         ;;
 esac
