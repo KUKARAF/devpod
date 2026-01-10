@@ -94,6 +94,15 @@ EOF
 
 # Function to start pomodoro
 start_pomodoro() {
+    local custom_duration="$1"
+    local work_duration="${custom_duration:-$WORK_DURATION}"
+    
+    # Validate that work_duration is a positive integer
+    if ! [[ "$work_duration" =~ ^[0-9]+$ ]] || [ "$work_duration" -le 0 ]; then
+        echo "Error: Duration must be a positive integer"
+        return 1
+    fi
+    
     local current_state=$(get_state_var "POMODORO_STATE" "idle")
     
     if [ "$current_state" != "idle" ]; then
@@ -110,14 +119,14 @@ start_pomodoro() {
     fi
     
     set_state_var "POMODORO_STATE" "work"
-    set_state_var "POMODORO_TIME" "$WORK_DURATION"
+    set_state_var "POMODORO_TIME" "$work_duration"
     set_state_var "POMODORO_START_TIME" "$(date +%s)"
     
-    echo "Starting work session: $WORK_DURATION minutes"
+    echo "Starting work session: $work_duration minutes"
     
     # Background timer
     (
-        sleep $((WORK_DURATION * 60))
+        sleep $((work_duration * 60))
         if [ "$(get_state_var "POMODORO_STATE" "idle")" = "work" ]; then
             # Pomodoro completed
             local completed=$(get_state_var "POMODORO_COMPLETED" "0")
@@ -290,7 +299,7 @@ waybar_status() {
 # Main command handling
 case "$1" in
     start)
-        start_pomodoro
+        start_pomodoro "$2"
         ;;
     stop)
         stop_pomodoro
@@ -309,7 +318,7 @@ case "$1" in
         ;;
     *)
         echo "Usage: $0 {start|stop|extend|status|starship|waybar}"
-        echo "  start    - Start a new pomodoro work session"
+        echo "  start    - Start a new pomodoro work session (optional: duration in minutes)"
         echo "  stop     - Stop the current pomodoro"
         echo "  extend   - Add 10 minutes to current timer"
         echo "  status   - Show current status"
