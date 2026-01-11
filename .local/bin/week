@@ -4,7 +4,7 @@ import os
 from datetime import datetime, timedelta
 
 def get_week_files():
-    """Get paths to all vimwiki diary files for the current week (Monday to Sunday)"""
+    """Get paths to existing vimwiki diary files for the current week (Monday to Sunday)"""
     home = os.path.expanduser('~')
     
     # Get today's date
@@ -18,7 +18,11 @@ def get_week_files():
     for i in range(7):
         date_obj = monday + timedelta(days=i)
         date_str = date_obj.strftime('%Y-%m-%d')
-        week_files.append(f'{home}/vimwiki/diary/{date_str}.md')
+        file_path = f'{home}/vimwiki/diary/{date_str}.md'
+        
+        # Only add files that actually exist
+        if os.path.exists(file_path):
+            week_files.append(file_path)
     
     return week_files
 

@@ -5,7 +5,7 @@ import calendar
 from datetime import datetime
 
 def get_month_files():
-    """Get paths to all vimwiki diary files for the current month"""
+    """Get paths to existing vimwiki diary files for the current month"""
     home = os.path.expanduser('~')
     
     # Get current year and month
@@ -20,7 +20,11 @@ def get_month_files():
     # Iterate through all days in the month
     for day in range(1, days_in_month + 1):
         date_str = f'{year:04d}-{month:02d}-{day:02d}'
-        month_files.append(f'{home}/vimwiki/diary/{date_str}.md')
+        file_path = f'{home}/vimwiki/diary/{date_str}.md'
+        
+        # Only add files that actually exist
+        if os.path.exists(file_path):
+            month_files.append(file_path)
     
     return month_files
 
