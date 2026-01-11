@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Resolve git root (hard requirement)
+GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "$GIT_ROOT" ]]; then
+  echo "Error: not inside a git repository"
+  exit 1
+fi
+
+BASE_NAME="$(basename "$GIT_ROOT")"
+
+# Get existing sessions for this repo
+get_sessions() {
+  zellij ls 2>/dev/null \
+    | awk '{print $1}' \
+    | grep -E "^${BASE_NAME}(-|$)" || true
+}
+
+pick_session() {
+  fzf --prompt="zellij (${BASE_NAME})> " --height=40% --reverse
+}
+
+case "${1:-}" in
+  clear)
+    SESSIONS="$(get_sessions)"
+    if [[ -z "$SESSIONS" ]]; then
+      echo "No Zellij sessions for repo '$BASE_NAME'"
+      exit 0
+    fi
+
+    echo "$SESSIONS" | while read -r s; do
+      echo "Deleting session: $s"
+      zellij delete-session "$s"
+    done
+    ;;
+
+  new)
+    read -rp "Enter suffix for new session (${BASE_NAME}-<suffix>): " SUFFIX
+    [[ -z "$SUFFIX" ]] && {
+      echo "Aborted: suffix required"
+      exit 1
+    }
+
+    SESSION_NAME="${BASE_NAME}-${SUFFIX}"
+    echo "Creating new session: $SESSION_NAME"
+    exec zellij attach -c -s "$SESSION_NAME"
+    ;;
+
+  "")
+    SESSIONS="$(get_sessions)"
+    COUNT="$(echo "$SESSIONS" | sed '/^$/d' | wc -l)"
+
+    if [[ "$COUNT" -eq 0 ]]; then
+      SUFFIX="$(tr -dc a-z0-9 </dev/urandom | head -c 4)"
+      SESSION_NAME="${BASE_NAME}-${SUFFIX}"
+      echo "Creating new session: $SESSION_NAME"
+      exec zellij attach -c -s "$SESSION_NAME"
+
+    elif [[ "$COUNT" -eq 1 ]]; then
+      SESSION_NAME="$(echo "$SESSIONS")"
+      echo "Attaching to session: $SESSION_NAME"
+      exec zellij attach "$SESSION_NAME"
+
+    else
+      SESSION_NAME="$(echo "$SESSIONS" | pick_session)"
+      [[ -z "$SESSION_NAME" ]] && exit 1
+      echo "Attaching to session: $SESSION_NAME"
+      exec zellij attach "$SESSION_NAME"
+    fi
+    ;;
+
+  *)
+    echo "Usage:"
+    echo "  zj        attach / pick / create"
+    echo "  zj new    create new session with suffix"
+    echo "  zj clear  delete all sessions for this repo"
+    exit 1
+    ;;
+esac
+
