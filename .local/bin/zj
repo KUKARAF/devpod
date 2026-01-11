@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Resolve git root (hard requirement)
+# Do not run inside Zellij
+if [[ -n "${ZELLIJ:-}" ]]; then
+  echo "Already inside Zellij. Detach or use Ctrl-o w."
+  exit 1
+fi
+
+# Resolve git root
 GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 if [[ -z "$GIT_ROOT" ]]; then
   echo "Error: not inside a git repository"
@@ -10,7 +16,6 @@ fi
 
 BASE_NAME="$(basename "$GIT_ROOT")"
 
-# Get existing sessions for this repo
 get_sessions() {
   zellij ls 2>/dev/null \
     | awk '{print $1}' \
@@ -24,27 +29,21 @@ pick_session() {
 case "${1:-}" in
   clear)
     SESSIONS="$(get_sessions)"
-    if [[ -z "$SESSIONS" ]]; then
-      echo "No Zellij sessions for repo '$BASE_NAME'"
-      exit 
-    fi
+    [[ -z "$SESSIONS" ]] && {
+      echo "No sessions for $BASE_NAME"
+      exit 0
+    }
 
     echo "$SESSIONS" | while read -r s; do
-      echo "Deleting session: $s"
+      echo "Deleting $s"
       zellij delete-session "$s"
     done
     ;;
 
   new)
-    read -rp "Enter suffix for new session (${BASE_NAME}-<suffix>): " SUFFIX
-    [[ -z "$SUFFIX" ]] && {
-      echo "Aborted: suffix required"
-      exit 1
-    }
-
-    SESSION_NAME="${BASE_NAME}-${SUFFIX}"
-    echo "Creating new session: $SESSION_NAME"
-    zellij attach -c -s "$SESSION_NAME"
+    read -rp "Suffix for new session (${BASE_NAME}-<suffix>): " SUFFIX
+    [[ -z "$SUFFIX" ]] && exit 1
+    exec zellij attach -c "${BASE_NAME}-${SUFFIX}"
     ;;
 
   "")
@@ -52,29 +51,25 @@ case "${1:-}" in
     COUNT="$(echo "$SESSIONS" | sed '/^$/d' | wc -l)"
 
     if [[ "$COUNT" -eq 0 ]]; then
-      SUFFIX="$(tr -dc a-z0. </dev/urandom | head -c 4)"
-      SESSION_NAME="${BASE_NAME}-${SUFFIX}"
-      echo "Creating new session: $SESSION_NAME"
-      zellij attach -c -s "$SESSION_NAME"
+      SUFFIX="$(tr -dc a-z0-9 </dev/urandom | head -c 4)"
+      exec zellij attach -c "${BASE_NAME}-${SUFFIX}"
 
- elif [[ "$COUNT" -eq 1 ]]; then
-      SESSION_NAME="$(echo "$SESSIONS")"
-      echo "Attaching to session: $SESSION_NAME"
-      zellij attach "$SESSION_NAME"
+    elif [[ "$COUNT" -eq 1 ]]; then
+      exec zellij attach "$(echo "$SESSIONS")"
 
     else
-      SESSION_NAME="$(echo "$SESSIONS" | pick_session)"
-      [[ -z "$SESSION_NAME" ]] && exit 1
-      echo "Attaching to session: $SESSION_NAME"
-      zellij attach "$SESSION_NAME"
+      SESSION="$(echo "$SESSIONS" | pick_session)"
+      [[ -z "$SESSION" ]] && exit 1
+      exec zellij attach "$SESSION"
     fi
     ;;
 
   *)
-    echo "Usage Usage:"
-    echo "  zj    attach / pick / create"
-    echo "  zj new    create new session with suffix"
-    echo "  zj clear  delete all sessions for this repo"
+    echo "Usage:"
+    echo "  zj        attach / pick / create"
+    echo "  zj new    create new session"
+    echo "  zj clear  delete repo sessions"
     exit 1
     ;;
 esac
+
