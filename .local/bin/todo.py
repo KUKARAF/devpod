@@ -34,11 +34,11 @@ class Todo:
     def _parse_due_date(self, due_str: str, reference_date: datetime) -> Optional[datetime]:
         """Parse due date string using timefhuman with reference_date as context."""
         try:
-            # timefhuman returns a list, extract first element
-            results = timefhuman(due_str, reference_date=reference_date)
+            # Use 'now' parameter for timefhuman
+            results = timefhuman(due_str, now=reference_date)
             if results:
                 # Handle various return types from timefhuman
-                result = results[0]
+                result = results[0] if isinstance(results, list) else results
                 
                 # If it's a tuple (range), return the start time
                 if isinstance(result, tuple):

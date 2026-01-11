@@ -182,11 +182,12 @@ def cmd_add(task_text: str) -> None:
     
     if due_match:
         due_str = due_match.group(1)
-        # Parse with timefhuman using today as reference
+        # Parse with timefhuman using today as context
         try:
-            results = timefhuman(due_str, reference_date=datetime.now())
+            results = timefhuman(due_str, now=datetime.now())
             if results:
-                result = results[0]
+                result = results[0] if isinstance(results, list) else results
+                
                 # Handle various return types
                 if isinstance(result, tuple):
                     due_date = result[0]
