@@ -11,13 +11,14 @@ except ImportError:
     raise ImportError("timefhuman is required. Install with: pip install timefhuman")
 
 
-def get_date_files(date_input, create=False):
+def get_date_files(date_input, create=False, debug=False):
     """
     Get the path to the appropriate vimwiki diary file(s) based on natural language input.
     
     Args:
         date_input: Natural language date string (e.g., "next week", "tomorrow")
         create: If True, create the file if it doesn't exist. If False, only return existing files.
+        debug: If True, enable debug logging
     
     Returns:
         List of file paths (usually just one, but could be multiple for date ranges)
@@ -25,8 +26,9 @@ def get_date_files(date_input, create=False):
     home = os.path.expanduser('~')
     base_dir = f'{home}/vimwiki/diary'
     
-    print(f"Debug: Input date string = '{date_input}'", file=sys.stderr)
-    print(f"Debug: Current datetime = {datetime.now()}", file=sys.stderr)
+    if debug:
+        print(f"Debug: Input date string = '{date_input}'", file=sys.stderr)
+        print(f"Debug: Current datetime = {datetime.now()}", file=sys.stderr)
     
     # Parse the natural language date input
     try:
@@ -35,8 +37,9 @@ def get_date_files(date_input, create=False):
         config = tfhConfig(direction=Direction.previous, now=datetime.now())
         results = timefhuman(date_input, config=config)
         
-        print(f"Debug: timefhuman results = {results}", file=sys.stderr)
-        print(f"Debug: results type = {type(results)}", file=sys.stderr)
+        if debug:
+            print(f"Debug: timefhuman results = {results}", file=sys.stderr)
+            print(f"Debug: results type = {type(results)}", file=sys.stderr)
         
         if not results:
             raise ValueError(f"Could not parse date: {date_input}")
@@ -46,21 +49,25 @@ def get_date_files(date_input, create=False):
         # Handle various return types
         if isinstance(result, tuple):
             # Date range, convert to list
-            print(f"Debug: tuple result detected: {result}", file=sys.stderr)
+            if debug:
+                print(f"Debug: tuple result detected: {result}", file=sys.stderr)
             dates = list(result)
         elif isinstance(result, list):
             # Alternatives, take the first
-            print(f"Debug: list result detected: {result}", file=sys.stderr)
+            if debug:
+                print(f"Debug: list result detected: {result}", file=sys.stderr)
             first = result[0]
             if isinstance(first, tuple):
                 # Date range inside alternatives
                 dates = list(first)
-                print(f"Debug: list/tuple detected: {dates}", file=sys.stderr)
+                if debug:
+                    print(f"Debug: list/tuple detected: {dates}", file=sys.stderr)
             else:
                 dates = [first]
         else:
             # Single datetime
-            print(f"Debug: single datetime detected: {result}", file=sys.stderr)
+            if debug:
+                print(f"Debug: single datetime detected: {result}", file=sys.stderr)
             dates = [result]
             
     except Exception as e:
@@ -69,14 +76,16 @@ def get_date_files(date_input, create=False):
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)
     
-    print(f"Debug: final dates list = {dates}", file=sys.stderr)
+    if debug:
+        print(f"Debug: final dates list = {dates}", file=sys.stderr)
     
     # Convert dates to file paths
     file_paths = []
     for date in dates:
         date_str = date.strftime('%Y-%m-%d')
         file_path = f'{base_dir}/{date_str}.md'
-        print(f"Debug: checking file path = {file_path}", file=sys.stderr)
+        if debug:
+            print(f"Debug: checking file path = {file_path}", file=sys.stderr)
         
         # Create file if requested, otherwise only return existing files
         if create:
@@ -87,7 +96,8 @@ def get_date_files(date_input, create=False):
         
         if os.path.exists(file_path):
             file_paths.append(file_path)
-            print(f"Debug: added file path = {file_path}", file=sys.stderr)
+            if debug:
+                print(f"Debug: added file path = {file_path}", file=sys.stderr)
     
     # If no files exist and we're not creating, return empty list
     return file_paths
@@ -97,18 +107,25 @@ def main():
     # Simple argument parsing - any unrecognized argument is considered part of the date
     args = sys.argv[1:]
     
-    # Check for --create flag
+    # Check for flags
     create = False
+    debug = False
+    
     if '--create' in args:
         create = True
         args.remove('--create')
     
+    if '--debug' in args:
+        debug = True
+        args.remove('--debug')
+    
     # Join remaining arguments as date input
     date_input = ' '.join(args) if args else 'today'
     
-    print(f"Debug: final input = '{date_input}'", file=sys.stderr)
+    if debug:
+        print(f"Debug: final input = '{date_input}'", file=sys.stderr)
     
-    files = get_date_files(date_input, create=create)
+    files = get_date_files(date_input, create=create, debug=debug)
     
     # Print all matched file paths
     for file_path in files:
