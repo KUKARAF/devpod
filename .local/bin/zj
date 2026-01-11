@@ -54,7 +54,14 @@ case "${1:-}" in
     echo "Sessions: $SESSIONS" >&2
 
     if [[ "$COUNT" -eq 0 ]]; then
-      SUFFIX="$(tr -dc a-z0-9 </dev/urandom | head -c 4)"
+      # Try multiple methods for random suffix generation
+      if command -v openssl >/dev/null 2>&1; then
+        SUFFIX="$(openssl rand -hex 2)"
+      elif [[ -r /dev/urandom ]]; then
+        SUFFIX="$(tr -dc a-z0-9 </dev/urandom | head -c 4)"
+      else
+        SUFFIX="$(date +%s%N | sha256sum | cut -b-4)"
+      fi
       echo "Creating new session: ${BASE_NAME}-${SUFFIX}" >&2
       exec zellij attach -c "${BASE_NAME}-${SUFFIX}"
 
