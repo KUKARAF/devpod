@@ -50,16 +50,23 @@ case "${1:-}" in
     SESSIONS="$(get_sessions)"
     COUNT="$(echo "$SESSIONS" | sed '/^$/d' | wc -l)"
 
+    echo "Found $COUNT sessions for $BASE_NAME" >&2
+    echo "Sessions: $SESSIONS" >&2
+
     if [[ "$COUNT" -eq 0 ]]; then
       SUFFIX="$(tr -dc a-z0-9 </dev/urandom | head -c 4)"
+      echo "Creating new session: ${BASE_NAME}-${SUFFIX}" >&2
       exec zellij attach -c "${BASE_NAME}-${SUFFIX}"
 
     elif [[ "$COUNT" -eq 1 ]]; then
-      exec zellij attach "$(echo "$SESSIONS")"
+      SESSION="$(echo "$SESSIONS" | head -n1)"
+      echo "Attaching to single session: $SESSION" >&2
+      exec zellij attach "$SESSION"
 
     else
       SESSION="$(echo "$SESSIONS" | pick_session)"
       [[ -z "$SESSION" ]] && exit 1
+      echo "Attaching to selected session: $SESSION" >&2
       exec zellij attach "$SESSION"
     fi
     ;;
@@ -72,4 +79,3 @@ case "${1:-}" in
     exit 1
     ;;
 esac
-
