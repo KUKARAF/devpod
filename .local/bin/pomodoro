@@ -2,16 +2,12 @@
 
 # Pomodoro timer script
 # Uses a state file to persist state between invocations
-# Logs completed pomodoros to vimwiki diary
+# Logs completed pomodoros to vimwiki diary via today + kv_manager
 
 # Default settings
 WORK_DURATION=60
 BREAK_DURATION=10
 STATE_FILE="$HOME/.pomodoro_state"
-
-# Get current date for diary file
-DIARY_DATE=$(date +%Y-%m-%d)
-DIARY_FILE="$HOME/vimwiki/diary/$DIARY_DATE.md"
 
 # Function to read state from file
 get_state_var() {
@@ -50,46 +46,13 @@ remove_state_var() {
     fi
 }
 
-# Function to update diary file with pomodoro count
-update_diary() {
-    local count="$1"
+# Function to get distraction stats from kv_manager
+get_distraction_stats() {
+    # Get daily distraction count and weekly average
+    local today_distractions=$(./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager get distracted)
+    local weekly_avg=$(./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager get distracted_weekly_avg)
     
-    # Create diary directory if it doesn't exist
-    mkdir -p "$(dirname "$DIARY_FILE")"
-    
-    # If file doesn't exist, create it with YAML front matter
-    if [ ! -f "$DIARY_FILE" ]; then
-        cat > "$DIARY_FILE" << EOF
----
-pomodoros: $count
----
-
-EOF
-        return
-    fi
-    
-    # Check if file has YAML front matter
-    if head -n 1 "$DIARY_FILE" | grep -q "^---$"; then
-        # File has YAML front matter
-        if grep -q "^pomodoros:" "$DIARY_FILE"; then
-            # Update existing pomodoros count
-            sed -i "s/^pomodoros:.*/pomodoros: $count/" "$DIARY_FILE"
-        else
-            # Add pomodoros to existing front matter
-            sed -i "/^---$/a pomodoros: $count" "$DIARY_FILE"
-        fi
-    else
-        # No YAML front matter, add it at the beginning
-        temp_file=$(mktemp)
-        cat > "$temp_file" << EOF
----
-pomodoros: $count
----
-
-EOF
-        cat "$DIARY_FILE" >> "$temp_file"
-        mv "$temp_file" "$DIARY_FILE"
-    fi
+    echo "${today_distractions:-0} ${weekly_avg:-0}"
 }
 
 # Function to start pomodoro
@@ -128,18 +91,16 @@ start_pomodoro() {
     (
         sleep $((work_duration * 60))
         if [ "$(get_state_var "POMODORO_STATE" "idle")" = "work" ]; then
-            # Pomodoro completed
-            local completed=$(get_state_var "POMODORO_COMPLETED" "0")
-            completed=$((completed + 1))
-            set_state_var "POMODORO_COMPLETED" "$completed"
-            update_diary "$completed"
+            # Pomodoro completed - increment pomodoro count
+            local current_pomodoros=$(./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager get pomodoro)
+            ./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager add pomodoro 1
             
             set_state_var "POMODORO_STATE" "break"
             set_state_var "POMODORO_TIME" "$BREAK_DURATION"
             set_state_var "POMODORO_START_TIME" "$(date +%s)"
             
             echo "Work session completed! Starting break: $BREAK_DURATION minutes"
-            echo "Total pomodoros completed today: $completed"
+            echo "Total pomodoros completed today: $((current_pomodoros + 1))"
             
             # Break timer
             sleep $((BREAK_DURATION * 60))
@@ -200,7 +161,7 @@ extend_pomodoro() {
 show_status() {
     local current_state=$(get_state_var "POMODORO_STATE" "idle")
     local current_time=$(get_state_var "POMODORO_TIME" "0")
-    local completed=$(get_state_var "POMODORO_COMPLETED" "0")
+    local completed=$(./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager get pomodoro)
     
     echo "Status: $current_state"
     if [ "$current_state" != "idle" ]; then
@@ -213,22 +174,6 @@ show_status() {
         echo "Time remaining: $remaining minutes"
     fi
     echo "Completed pomodoros today: $completed"
-}
-
-# Function to get today's distraction stats from diary file
-get_today_distraction_stats() {
-    local today_date=$(date +%Y-%m-%d)
-    local today_file="$HOME/vimwiki/diary/$today_date.md"
-    
-    if [ ! -f "$today_file" ]; then
-        echo "0 0"
-        return
-    fi
-    
-    local count=$(grep "^distractions:" "$today_file" 2>/dev/null | cut -d':' -f2- | tr -d ' ')
-    local weekly_avg=$(grep "^distractions_weekly_avg:" "$today_file" 2>/dev/null | cut -d':' -f2- | tr -d ' ')
-    
-    echo "${count:-0} ${weekly_avg:-0}"
 }
 
 # Function to output status for starship prompt
@@ -256,7 +201,7 @@ starship_status() {
     
     # Output with appropriate symbol and time
     if [ "$current_state" = "work" ]; then
-        local distraction_stats=($(get_today_distraction_stats))
+        local distraction_stats=($(get_distraction_stats))
         local today_distractions="${distraction_stats[0]}"
         local weekly_avg="${distraction_stats[1]}"
         echo "🍅 ${remaining}m 📱${today_distractions}(${weekly_avg})"
