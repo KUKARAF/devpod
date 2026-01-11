@@ -49,8 +49,8 @@ remove_state_var() {
 # Function to get distraction stats from kv_manager
 get_distraction_stats() {
     # Get daily distraction count and weekly average
-    local today_distractions=$(./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager get distracted)
-    local weekly_avg=$(./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager get distracted_weekly_avg)
+    local today_distractions=$(today | kv_manager get distracted)
+    local weekly_avg=$(today | kv_manager get distracted_weekly_avg)
     
     echo "${today_distractions:-0} ${weekly_avg:-0}"
 }
@@ -92,8 +92,9 @@ start_pomodoro() {
         sleep $((work_duration * 60))
         if [ "$(get_state_var "POMODORO_STATE" "idle")" = "work" ]; then
             # Pomodoro completed - increment pomodoro count
-            local current_pomodoros=$(./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager get pomodoro)
-            ./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager add pomodoro 1
+            local diary_file=$(today)
+            local current_pomodoros=$(echo "$diary_file" | kv_manager get pomodoro)
+            echo "$diary_file" | kv_manager add pomodoro 1
             
             set_state_var "POMODORO_STATE" "break"
             set_state_var "POMODORO_TIME" "$BREAK_DURATION"
@@ -161,7 +162,7 @@ extend_pomodoro() {
 show_status() {
     local current_state=$(get_state_var "POMODORO_STATE" "idle")
     local current_time=$(get_state_var "POMODORO_TIME" "0")
-    local completed=$(./today | /home/rafa/.config/dotfiles/.local/bin/kv_manager get pomodoro)
+    local completed=$(today | kv_manager get pomodoro)
     
     echo "Status: $current_state"
     if [ "$current_state" != "idle" ]; then
