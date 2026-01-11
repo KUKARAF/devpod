@@ -26,7 +26,7 @@ case "${1:-}" in
     SESSIONS="$(get_sessions)"
     if [[ -z "$SESSIONS" ]]; then
       echo "No Zellij sessions for repo '$BASE_NAME'"
-      exit 0
+      exit 
     fi
 
     echo "$SESSIONS" | while read -r s; do
@@ -44,7 +44,7 @@ case "${1:-}" in
 
     SESSION_NAME="${BASE_NAME}-${SUFFIX}"
     echo "Creating new session: $SESSION_NAME"
-    exec zellij attach -c -s "$SESSION_NAME"
+    zellij attach -c -s "$SESSION_NAME"
     ;;
 
   "")
@@ -52,30 +52,29 @@ case "${1:-}" in
     COUNT="$(echo "$SESSIONS" | sed '/^$/d' | wc -l)"
 
     if [[ "$COUNT" -eq 0 ]]; then
-      SUFFIX="$(tr -dc a-z0-9 </dev/urandom | head -c 4)"
+      SUFFIX="$(tr -dc a-z0. </dev/urandom | head -c 4)"
       SESSION_NAME="${BASE_NAME}-${SUFFIX}"
       echo "Creating new session: $SESSION_NAME"
-      exec zellij attach -c -s "$SESSION_NAME"
+      zellij attach -c -s "$SESSION_NAME"
 
-    elif [[ "$COUNT" -eq 1 ]]; then
+ elif [[ "$COUNT" -eq 1 ]]; then
       SESSION_NAME="$(echo "$SESSIONS")"
       echo "Attaching to session: $SESSION_NAME"
-      exec zellij attach "$SESSION_NAME"
+      zellij attach "$SESSION_NAME"
 
     else
       SESSION_NAME="$(echo "$SESSIONS" | pick_session)"
       [[ -z "$SESSION_NAME" ]] && exit 1
       echo "Attaching to session: $SESSION_NAME"
-      exec zellij attach "$SESSION_NAME"
+      zellij attach "$SESSION_NAME"
     fi
     ;;
 
   *)
-    echo "Usage:"
-    echo "  zj        attach / pick / create"
+    echo "Usage Usage:"
+    echo "  zj    attach / pick / create"
     echo "  zj new    create new session with suffix"
     echo "  zj clear  delete all sessions for this repo"
     exit 1
     ;;
 esac
-
