@@ -3,7 +3,7 @@
 import os
 import sys
 from datetime import datetime
-from argparse import ArgumentParser
+import argparse
 
 try:
     from timefhuman import timefhuman
@@ -11,12 +11,12 @@ except ImportError:
     raise ImportError("timefhuman is required. Install with: pip install timefhuman")
 
 
-def get_date_files(date_input=None, create=False):
+def get_date_files(date_input, create=False):
     """
     Get the path to the appropriate vimwiki diary file(s) based on natural language input.
     
     Args:
-        date_input: Natural language date string (e.g., " "next week"). None for today.
+        date_input: Natural language date string (e.g., "next week", "tomorrow")
         create: If True, create the file if it doesn't exist. If False, only return existing files.
     
     Returns:
@@ -26,41 +26,37 @@ def get_date_files(date_input=None, create=False):
     base_dir = f'{home}/vimwiki/diary'
     
     # Parse the natural language date input
-    if date_input is None:
-        # Default to today
-        dates = [datetime.now()]
-    else:
-        try:
-            results = timefhuman(date_input, now=datetime.now())
-            if not results:
-                raise ValueError(f"Could not parse date: {date_input}")
-                
-            result = results[0] if isinstance(results, list) else results
+    try:
+        results = timefhuman(date_input, now=datetime.now())
+        if not results:
+            raise ValueError(f"Could not parse date: {date_input}")
             
-            # Handle various return types
-            if isinstance(result, tuple):
-                # Date range, convert to list
-                dates = list(result)
-            elif isinstance(result, list):
-                # Alternatives, take the first
-                first = result[0]
-                if isinstance(first, tuple):
-                    # Date range inside alternatives
-                    dates = list(first)
-                else:
-                    dates = [first]
+        result = results[0] if isinstance(results, list) else results
+        
+        # Handle various return types
+        if isinstance(result, tuple):
+            # Date range, convert to list
+            dates = list(result)
+        elif isinstance(result, list):
+            # Alternatives, take the first
+            first = result[0]
+            if isinstance(first, tuple):
+                # Date range inside alternatives
+                dates = list(first)
             else:
-                # Single datetime
-                dates = [result]
-                
-        except Exception as e:
-            print(f"Error parsing date: {e}", file=sys.stderr)
-            sys.exit(1)
+                dates = [first]
+        else:
+            # Single datetime
+            dates = [result]
+            
+    except Exception as e:
+        print(f"Error parsing date: {e}", file=sys.stderr)
+        sys.exit(1)
     
     # Convert dates to file paths
     file_paths = []
     for date in dates:
-        date_str = date.strftime('%Y-%m-%d)
+        date_str = date.strftime('%Y-%m-%d')
         file_path = f'{base_dir}/{date_str}.md'
         
         # Create file if requested, otherwise only return existing files
@@ -72,26 +68,25 @@ def get_date_files(date_input=None, create=False):
         
         if os.path.exists(file_path):
             file_paths.append(file_path)
-    }
     
     # If no files exist and we're not creating, return empty list
     return file_paths
 
 
 def main():
-    # Parse arguments properly - treat everything after as date input
+    # Simple argument parsing - any unrecognized argument is considered part of the date
     args = sys.argv[1:]
     
-    # If no arguments, default to today
-    if not args:
-        date_input = None
+    # Check for --create flag
+    create = False
+    if '--create' in args:
         create = True
-    else:
-        # Join all arguments as date input
-        date_input = ' '.join(args)
-        create = False
+        args.remove('--create')
     
-    files = get_date_files(date_input=date_input, create=create)
+    # Join remaining arguments as date input
+    date_input = ' '.join(args) if args else 'today'
+    
+    files = get_date_files(date_input, create=create)
     
     # Print all matched file paths
     for file_path in files:
