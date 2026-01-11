@@ -78,7 +78,7 @@ def write_frontmatter(file_path, data):
 def main():
     """Main CLI interface"""
     if len(sys.argv) < 3:
-        print("Usage: kv_manager <key> <operation> [value]", file=sys.stderr)
+        print("Usage: kv_manager <operation> <key> [value]", file=sys.stderr)
         sys.exit(1)
     
     # Read today's file path from stdin
@@ -87,8 +87,8 @@ def main():
         print("Error: No file path provided via stdin", file=sys.stderr)
         sys.exit(1)
     
-    key = sys.argv[1]
-    operation = sys.argv[2]
+    operation = sys.argv[1]
+    key = sys.argv[2]
     
     # Ensure directory exists
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
