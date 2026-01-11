@@ -6,7 +6,7 @@ from datetime import datetime
 from argparse import ArgumentParser
 
 try:
-    from timefhuman import timefhuman
+    from timefhuman import timefhuman, Direction
 except ImportError:
     raise ImportError("timefhuman is required. Install with: pip install timefhuman")
 
@@ -30,7 +30,11 @@ def get_date_files(date_input, create=False):
     
     # Parse the natural language date input
     try:
-        results = timefhuman(date_input, now=datetime.now())
+        # Create config with Direction.previous for proper past date parsing
+        from timefhuman import tfhConfig
+        config = tfhConfig(direction=Direction.previous, now=datetime.now())
+        results = timefhuman(date_input, config=config)
+        
         print(f"Debug: timefhuman results = {results}", file=sys.stderr)
         print(f"Debug: results type = {type(results)}", file=sys.stderr)
         
