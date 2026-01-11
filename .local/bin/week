@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+import os
+from datetime import datetime, timedelta
+
+def get_week_files():
+    """Get paths to all vimwiki diary files for the current week (Monday to Sunday)"""
+    home = os.path.expanduser('~')
+    
+    # Get today's date
+    today = datetime.now()
+    
+    # Find Monday (0 = Monday, 6 = Sunday)
+    monday = today - timedelta(days=today.weekday())
+    
+    week_files = []
+    # Iterate through Monday to Sunday
+    for i in range(7):
+        date_obj = monday + timedelta(days=i)
+        date_str = date_obj.strftime('%Y-%m-%d')
+        week_files.append(f'{home}/vimwiki/diary/{date_str}.md')
+    
+    return week_files
+
+if __name__ == '__main__':
+    week_files = get_week_files()
+    # Print each file path on a new line
+    for file_path in week_files:
+        print(file_path)

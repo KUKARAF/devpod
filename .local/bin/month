@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+import os
+import calendar
+from datetime import datetime
+
+def get_month_files():
+    """Get paths to all vimwiki diary files for the current month"""
+    home = os.path.expanduser('~')
+    
+    # Get current year and month
+    now = datetime.now()
+    year = now.year
+    month = now.month
+    
+    # Get the number of days in this month
+    days_in_month = calendar.monthrange(year, month)[1]
+    
+    month_files = []
+    # Iterate through all days in the month
+    for day in range(1, days_in_month + 1):
+        date_str = f'{year:04d}-{month:02d}-{day:02d}'
+        month_files.append(f'{home}/vimwiki/diary/{date_str}.md')
+    
+    return month_files
+
+if __name__ == '__main__':
+    month_files = get_month_files()
+    # Print each file path on a new line
+    for file_path in month_files:
+        print(file_path)
