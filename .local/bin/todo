@@ -213,16 +213,15 @@ def cmd_add(task_text: str) -> None:
     if not target_file.exists():
         target_file.touch()
     
-    # Remove the due:date from task text and replace with due:today
-    # since the date is stored in the filename
-    cleaned_text = re.sub(r'due:\S+', 'due:today', task_text)
+    # Remove the due:date from task text since the date is stored in the filename
+    cleaned_text = re.sub(r'due:\S+\s*', '', task_text).strip()
     
     # Append todo to file
     with open(target_file, 'a', encoding='utf-8') as f:
         f.write(f"- [ ] {cleaned_text}\n")
     
     print(f"✅ Added to {target_file.name}")
-    print(f"   {cleaned_text}")
+    print(f"   - [ ] {cleaned_text}")
 
 
 def main():
