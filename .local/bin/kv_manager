@@ -81,14 +81,46 @@ def main():
         print("Usage: kv_manager <operation> <key> [value]", file=sys.stderr)
         sys.exit(1)
     
-    # Read today's file path from stdin
-    file_path = sys.stdin.read().strip()
-    if not file_path:
-        print("Error: No file path provided via stdin", file=sys.stderr)
+    # Read file paths from stdin (can be multiple lines)
+    file_paths = []
+    for line in sys.stdin:
+        line = line.strip()
+        if line:
+            file_paths.append(line)
+    
+    if not file_paths:
+        print("Error: No file paths provided via stdin", file=sys.stderr)
         sys.exit(1)
     
     operation = sys.argv[1]
     key = sys.argv[2]
+    
+    # Handle get operation - can work with multiple files
+    if operation == 'get':
+        values = []
+        for file_path in file_paths:
+            data = read_frontmatter(file_path)
+            if key in data:
+                values.append(data[key])
+        
+        # Return average for numeric values
+        if values and all(isinstance(v, (int, float)) for v in values):
+            average = sum(values) / len(values)
+            print(round(average, 2))
+        elif values:
+            # Return first value if any found
+            print(values[0])
+        else:
+            # Return 0 for numeric keys, empty string for others
+            print(0)
+        return
+    
+    # For set, add, sub operations, require exactly one file
+    if len(file_paths) != 1:
+        print("Error: set, add, and sub operations require exactly one file path", file=sys.stderr)
+        sys.exit(1)
+    
+    file_path = file_paths[0]
     
     # Ensure directory exists
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -99,11 +131,7 @@ def main():
     # Get current value (default to 0 for numeric operations)
     current_value = data.get(key, 0)
     
-    if operation == 'get':
-        print(current_value)
-        return
-    
-    elif operation == 'set':
+    if operation == 'set':
         if len(sys.argv) < 4:
             print("Error: set operation requires a value", file=sys.stderr)
             sys.exit(1)
