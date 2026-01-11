@@ -1,21 +1,101 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 from datetime import datetime
+from argparse import ArgumentParser
 
-def get_today_file():
-    """Get the path to today's vimwiki diary file, create it if it doesn't exist"""
+try:
+    from timefhuman import timefhuman
+except ImportError:
+    raise ImportError("timefhuman is required. Install with: pip install timefhuman")
+
+
+def get_date_files(date_input=None, create=False):
+    """
+    Get the path to the appropriate vimwiki diary file(s) based on natural language input.
+    
+    Args:
+        date_input: Natural language date string (e.g., "next week", "tomorrow"). None for today.
+        create: If True, create the file if it doesn't exist. If False, only return existing files.
+    
+    Returns:
+        List of file paths (usually just one, but could be multiple for date ranges)
+    """
     home = os.path.expanduser('~')
-    date_str = datetime.now().strftime('%Y-%m-%d')
-    file_path = f'{home}/vimwiki/diary/{date_str}.md'
+    base_dir = f'{home}/vimwiki/diary'
     
-    # Create the file if it doesn't exist
-    if not os.path.exists(file_path):
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'w') as f:
-            pass  # Create empty file
+    # Parse the natural language date input
+    if date_input is None:
+        # Default to today
+        dates = [datetime.now()]
+    else:
+        try:
+            results = timefhuman(date_input, now=datetime.now())
+            if not results:
+                raise ValueError(f"Could not parse date: {date_input}")
+                
+            result = results[0] if isinstance(results, list) else results
+            
+            # Handle various return types
+            if isinstance(result, tuple):
+                # Date range, convert to list
+                dates = list(result)
+            elif isinstance(result, list):
+                # Alternatives, take the first
+                first = result[0]
+                if isinstance(first, tuple):
+                    # Date range inside alternatives
+                    dates = list(first)
+                else:
+                    dates = [first]
+            else:
+                # Single datetime
+                dates = [result]
+                
+        except Exception as e:
+            print(f"Error parsing date: {e}", file=sys.stderr)
+            sys.exit(1)
     
-    return file_path
+    # Convert dates to file paths
+    file_paths = []
+    for date in dates:
+        date_str = date.strftime('%Y-%m-%d')
+        file_path = f'{base_dir}/{date_str}.md'
+        
+        # Create file if requested, otherwise only return existing files
+        if create:
+            os.makedirs(base_dir, exist_ok=True)
+            if not os.path.exists(file_path):
+                with open(file_path, 'w') as f:
+                    pass  # Create empty file
+        
+        if os.path.exists(file_path):
+            file_paths.append(file_path)
+    
+    # If no files exist and we're not creating, return empty list
+    return file_paths
+
+
+def main():
+    parser = ArgumentParser(description='Get vimwiki diary file for today or specified date')
+    parser.add_argument('date_input', nargs='?', help='Natural language date (e.g., "next week", "tomorrow")')
+    parser.add_argument('--create', action='store_true', help='Create file if it does not exist')
+    
+    args = parser.parse_args()
+    
+    # Default to creating today's file if no arguments
+    if not args.date_input:
+        create = True
+    else:
+        create = args.create
+    
+    files = get_date_files(date_input=args.date_input, create=create)
+    
+    # Print all matched file paths
+    for file_path in files:
+        print(file_path)
+
 
 if __name__ == '__main__':
-    print(get_today_file())
+    main()
