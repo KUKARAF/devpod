@@ -16,7 +16,7 @@ def get_date_files(date_input=None, create=False):
     Get the path to the appropriate vimwiki diary file(s) based on natural language input.
     
     Args:
-        date_input: Natural language date string (e.g., "next week", "tomorrow"). None for today.
+        date_input: Natural language date string (e.g., " "next week"). None for today.
         create: If True, create the file if it doesn't exist. If False, only return existing files.
     
     Returns:
@@ -60,7 +60,7 @@ def get_date_files(date_input=None, create=False):
     # Convert dates to file paths
     file_paths = []
     for date in dates:
-        date_str = date.strftime('%Y-%m-%d')
+        date_str = date.strftime('%Y-%m-%d)
         file_path = f'{base_dir}/{date_str}.md'
         
         # Create file if requested, otherwise only return existing files
@@ -72,25 +72,26 @@ def get_date_files(date_input=None, create=False):
         
         if os.path.exists(file_path):
             file_paths.append(file_path)
+    }
     
     # If no files exist and we're not creating, return empty list
     return file_paths
 
 
 def main():
-    parser = ArgumentParser(description='Get vimwiki diary file for today or specified date')
-    parser.add_argument('date_input', nargs='?', help='Natural language date (e.g., "next week", "tomorrow")')
-    parser.add_argument('--create', action='store_true', help='Create file if it does not exist')
+    # Parse arguments properly - treat everything after as date input
+    args = sys.argv[1:]
     
-    args = parser.parse_args()
-    
-    # Default to creating today's file if no arguments
-    if not args.date_input:
+    # If no arguments, default to today
+    if not args:
+        date_input = None
         create = True
     else:
-        create = args.create
+        # Join all arguments as date input
+        date_input = ' '.join(args)
+        create = False
     
-    files = get_date_files(date_input=args.date_input, create=create)
+    files = get_date_files(date_input=date_input, create=create)
     
     # Print all matched file paths
     for file_path in files:
