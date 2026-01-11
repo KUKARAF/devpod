@@ -196,6 +196,9 @@ def cmd_add(task_text: str) -> None:
                     due_date = first[0] if isinstance(first, tuple) else first
                 else:
                     due_date = result
+                
+                # Debug output
+                print(f"Debug: Parsed due date: {due_date}", file=sys.stderr)
         except Exception as e:
             print(f"Error parsing due date: {e}", file=sys.stderr)
             sys.exit(1)
