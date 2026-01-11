@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+import os
+from datetime import datetime
+
+def get_today_file():
+    """Get the path to today's vimwiki diary file"""
+    home = os.path.expanduser('~')
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    return f'{home}/vimwiki/diary/{date_str}.md'
+
+if __name__ == '__main__':
+    print(get_today_file())

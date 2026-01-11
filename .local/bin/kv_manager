@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import re
+from datetime import datetime
+
+def read_frontmatter(file_path):
+    """Read YAML frontmatter from a markdown file"""
+    if not os.path.exists(file_path):
+        return {}
+    
+    with open(file_path, 'r') as f:
+        content = f.read()
+    
+    # Check if file has YAML frontmatter
+    if not content.startswith('---'):
+        return {}
+    
+    # Extract frontmatter
+    try:
+        parts = content.split('---', 2)
+        if len(parts) < 3:
+            return {}
+        
+        frontmatter_text = parts[1].strip()
+        data = {}
+        
+        for line in frontmatter_text.split('\n'):
+            if ':' in line:
+                key, value = line.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+                
+                # Try to parse as number
+                if value.isdigit():
+                    value = int(value)
+                
+                data[key] = value
+        
+        return data
+    except Exception:
+        return {}
+
+def write_frontmatter(file_path, data):
+    """Write YAML frontmatter to a markdown file"""
+    # Read existing content (if any)
+    content = ""
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read()
+    
+    # Check if file has existing content other than frontmatter
+    if content.startswith('---'):
+        parts = content.split('---', 2)
+        if len(parts) >= 3:
+            content = parts[2].lstrip('\n')
+        else:
+            content = ""
+    
+    # Build new frontmatter
+    frontmatter_lines = ['---']
+    
+    # Sort keys for consistent ordering
+    for key in sorted(data.keys()):
+        value = data[key]
+        frontmatter_lines.append(f'{key}: {value}')
+    
+    frontmatter_lines.append('---')
+    frontmatter_lines.append('')
+    
+    # Write back to file
+    with open(file_path, 'w') as f:
+        f.write('\n'.join(frontmatter_lines))
+        if content:
+            f.write('\n' + content)
+
+def main():
+    """Main CLI interface"""
+    if len(sys.argv) < 3:
+        print("Usage: kv_manager <key> <operation> [value]", file=sys.stderr)
+        sys.exit(1)
+    
+    # Read today's file path from stdin
+    file_path = sys.stdin.read().strip()
+    if not file_path:
+        print("Error: No file path provided via stdin", file=sys.stderr)
+        sys.exit(1)
+    
+    key = sys.argv[1]
+    operation = sys.argv[2]
+    
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    
+    # Read current data
+    data = read_frontmatter(file_path)
+    
+    # Get current value (default to 0 for numeric operations)
+    current_value = data.get(key, 0)
+    
+    if operation == 'get':
+        print(current_value)
+        return
+    
+    elif operation == 'set':
+        if len(sys.argv) < 4:
+            print("Error: set operation requires a value", file=sys.stderr)
+            sys.exit(1)
+        
+        try:
+            value = int(sys.argv[3])
+        except ValueError:
+            value = sys.argv[3]
+        
+        data[key] = value
+    
+    elif operation == 'add':
+        if len(sys.argv) < 4:
+            value = 1
+        else:
+            try:
+                value = int(sys.argv[3])
+            except ValueError:
+                print("Error: add operation requires a numeric value", file=sys.stderr)
+                sys.exit(1)
+        
+        # Ensure current value is numeric
+        if not isinstance(current_value, (int, float)):
+            current_value = 0
+        
+        data[key] = current_value + value
+    
+    elif operation == 'sub':
+        if len(sys.argv) < 4:
+            value = 1
+        else:
+            try:
+                value = int(sys.argv[3])
+            except ValueError:
+                print("Error: sub operation requires a numeric value", file=sys.stderr)
+                sys.exit(1)
+        
+        # Ensure current value is numeric
+        if not isinstance(current_value, (int, float)):
+            current_value = 0
+        
+        data[key] = current_value - value
+    
+    else:
+        print(f"Error: Unknown operation '{operation}'", file=sys.stderr)
+        print("Supported operations: get, set, add, sub", file=sys.stderr)
+        sys.exit(1)
+    
+    # Write updated data
+    write_frontmatter(file_path, data)
+    
+    # Output the final value for the key
+    print(data[key])
+
+if __name__ == '__main__':
+    main()
