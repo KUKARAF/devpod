@@ -38,10 +38,7 @@ def parse_human_date(text):
     Returns:
         datetime object
     """
-    results = timefhuman(text)
-    if not results:
-        sys.exit(f"Error: could not parse date '{text}'")
-    return results[0] if isinstance(results, list) else results
+    return timefhuman(text)[0]
 
 def main():
     args = sys.argv[1:]
