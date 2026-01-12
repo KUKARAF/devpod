@@ -39,6 +39,7 @@ def parse_human_date(text):
         datetime object
     """
     parsed = timefhuman(text)
+    breakpoint()
     # return first item regardless of list length; IndexError on empty list is acceptable
     return next(iter(parsed))
 
