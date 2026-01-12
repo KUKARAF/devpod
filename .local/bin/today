@@ -38,7 +38,9 @@ def parse_human_date(text):
     Returns:
         datetime object
     """
-    return timefhuman(text)[0]
+    parsed = timefhuman(text)
+    # timefhuman returns a list; take first element or raise if empty
+    return parsed[0]
 
 def main():
     args = sys.argv[1:]
