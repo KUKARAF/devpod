@@ -6,8 +6,10 @@ Usage:
     today | todo get                          # Show todos due today or overdue
     today | todo edit                         # Open files in default editor
     week | todo show                          # Print all todos from week
+    today | todo done                         # Interactive (fzf) mark done
     todo add "task text #tag @location"       # Add new todo (uses today's file by default)
     todo add "task due:tomorrow #tag"         # Add todo with custom due date
+    todo done path/to/file.md 42              # Directly mark line 42 in file as done
 """
 
 import sys
@@ -43,16 +45,20 @@ def parse_args() -> tuple[str, list[str]]:
     if len(sys.argv) < 2:
         print("Usage: <files> | todo <command>", file=sys.stderr)
         print("       todo add <text>", file=sys.stderr)
-        print("Commands: get, show, edit, add", file=sys.stderr)
+        print("       todo done [<file_path> <line_number>]", file=sys.stderr)
+        print("Commands: get, show, edit, add, done", file=sys.stderr)
         sys.exit(1)
     
     command = sys.argv[1].lower()
     
-    # 'add' command doesn't require stdin
-    if command == 'add':
-        if len(sys.argv) < 3:
+    # 'add' and direct 'done' don't require stdin
+    if command in ('add', 'done'):
+        if command == 'add' and len(sys.argv) < 3:
             print("Usage: todo add <text>", file=sys.stderr)
             sys.exit(1)
+        # done with two extra args = direct mode; otherwise it's interactive and needs stdin
+        if command == 'done' and len(sys.argv) >= 4:
+            return command, []  # direct mode
         return command, []
     
     files = read_files_from_stdin()
@@ -227,6 +233,66 @@ def cmd_add(task_text: str) -> None:
     print(f"   - [ ] {cleaned_text}")
 
 
+def cmd_done_interactive(files: list[str]) -> None:
+    """Interactive (fzf) todo completion."""
+    todo = Todo(files)
+    all_todos = todo.get_all()
+    if not all_todos:
+        print("No todos found")
+        return
+
+    # Build id→todo map and display list
+    id_map = {}
+    display_lines = []
+    for tid, item in all_todos.items():
+        id_map[tid] = item
+        # Minimal display: first 60 chars of text, plus id for internal use
+        text = item["text"].strip().replace("- [ ]", "").replace("* [ ]", "").strip()
+        display = f"{tid:>4} {text[:60]}"
+        display_lines.append(display)
+
+    # Call fzf
+    fzf_input = "\n".join(display_lines)
+    try:
+        result = subprocess.run(
+            ["fzf", "--multi", "--preview", "echo {}", "--preview-window=up:1"],
+            input=fzf_input,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        # fzf returned non-zero (user cancelled)
+        return
+
+    # Parse selected lines
+    selected_lines = result.stdout.strip().splitlines()
+    if not selected_lines or selected_lines == [""]:
+        return
+
+    # Mark each selected todo done
+    for line in selected_lines:
+        # line format: "  42 Do the thing..."
+        idx_str = line.strip().split()[0]
+        try:
+            todo_id = int(idx_str)
+            if todo_id in id_map:
+                todo.mark_todo_done(todo_id)
+        except ValueError:
+            continue
+
+
+def cmd_done_direct(file_path: str, line_number: str) -> None:
+    """Mark a specific todo line as done"""
+    try:
+        line = int(line_number)
+        Todo.mark_done(file_path, line)
+        print(f"✅ Marked line {line_number} in {Path(file_path).name} as done")
+    except Exception as e:
+        print(f"Error marking done: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def main():
     command, files = parse_args()
     
@@ -239,9 +305,20 @@ def main():
     elif command == 'add':
         task_text = ' '.join(sys.argv[2:])
         cmd_add(task_text)
+    elif command == 'done':
+        if len(sys.argv) >= 4:  # direct mode
+            file_path = sys.argv[2]
+            line_number = sys.argv[3]
+            cmd_done_direct(file_path, line_number)
+        else:  # interactive mode
+            files_interactive = read_files_from_stdin() if not files else files
+            if not files_interactive:
+                print("Error: No files provided via stdin for interactive done", file=sys.stderr)
+                sys.exit(1)
+            cmd_done_interactive(files_interactive)
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
-        print("Commands: get, show, edit, add", file=sys.stderr)
+        print("Commands: get, show, edit, add, done", file=sys.stderr)
         sys.exit(1)
 
 
