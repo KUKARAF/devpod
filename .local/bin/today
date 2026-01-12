@@ -122,6 +122,10 @@ def main():
     # Join remaining arguments as date input
     date_input = ' '.join(args) if args else 'today'
     
+    # Auto-create file for today when no arguments are provided (i.e., when date_input is 'today')
+    if date_input == 'today':
+        create = True
+    
     if debug:
         print(f"Debug: final input = '{date_input}'", file=sys.stderr)
     
