@@ -107,3 +107,50 @@ class Todo:
     def get_all(self) -> Dict[int, dict]:
         """Return all todos"""
         return self.todos.copy()
+
+    def mark_todo_done(self, todo_id: int) -> None:
+        """
+        Mark the todo identified by todo_id as done by looking up the file
+        and line number that were captured at load time.
+        """
+        if todo_id not in self.todos:
+            raise KeyError(f"todo_id {todo_id} not found")
+        item = self.todos[todo_id]
+        self.mark_done(item['file'], item['line_number'])
+
+    @staticmethod
+    def mark_done(file_path: str, line_number: int) -> None:
+        """
+        Mark the todo on the given line in the specified file as done by changing
+        '- [ ]' or '* [ ]' to '- [x]' or '* [x]' respectively.
+        """
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        # Read all lines
+        with open(path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        # Validate line number
+        if line_number < 1 or line_number > len(lines):
+            raise ValueError(f"Line number {line_number} out of range (1-{len(lines)})")
+
+        # Zero-based index for list access
+        idx = line_number - 1
+
+        # Only rewrite unchecked todos
+        original_line = lines[idx].rstrip("\n")
+        updated_line = re.sub(r'^(\s*[-*]\s+)\[\s*\](\s+.*)$', r'\1[x]\2', original_line)
+
+        if updated_line == original_line:
+            # No substitution took place; line is either already checked or not a todo
+            return
+
+        lines[idx] = updated_line + "\n"
+
+        # Write back atomically
+        tmp_path = path.with_suffix(path.suffix + ".tmp")
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            f.writelines(lines)
+        tmp_path.replace(path)
