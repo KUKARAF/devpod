@@ -48,8 +48,8 @@ def main():
         # bare 'today' with auto-create
         print(datetime_to_filepath(datetime.today(), create=True))
     else:
-        # combine args into one string, prepend "today" for context, and parse
-        text = 'today ' + ' '.join(args)
+        # combine args into one string and parse
+        text = ' '.join(args)
         dt = parse_human_date(text)
         print(datetime_to_filepath(dt))
 
