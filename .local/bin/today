@@ -3,138 +3,56 @@
 import os
 import sys
 from datetime import datetime
-from argparse import ArgumentParser
 
 try:
-    from timefhuman import timefhuman, Direction
+    from timefhuman import timefhuman
 except ImportError:
-    raise ImportError("timefhuman is required. Install with: pip install timefhuman")
+    sys.exit("Error: timefhuman is required. Install with 'pip install timefhuman'.")
 
-
-def get_date_files(date_input, create=False, debug=False):
+def datetime_to_filepath(dt, create=False):
     """
-    Get the path to the appropriate vimwiki diary file(s) based on natural language input.
+    Convert datetime object to vimwiki diary file path.
     
     Args:
-        date_input: Natural language date string (e.g., "next week", "tomorrow")
-        create: If True, create the file if it doesn't exist. If False, only return existing files.
-        debug: If True, enable debug logging
+        dt: datetime object
+        create: if True and file doesn't exist, create it
     
     Returns:
-        List of file paths (usually just one, but could be multiple for date ranges)
+        absolute file path string
     """
-    home = os.path.expanduser('~')
-    base_dir = f'{home}/vimwiki/diary'
-    
-    if debug:
-        print(f"Debug: Input date string = '{date_input}'", file=sys.stderr)
-        print(f"Debug: Current datetime = {datetime.now()}", file=sys.stderr)
-    
-    # Parse the natural language date input
-    try:
-        # Create config with Direction.previous for proper past date parsing
-        from timefhuman import tfhConfig
-        config = tfhConfig(direction=Direction.previous, now=datetime.now())
-        results = timefhuman(date_input, config=config)
-        
-        if debug:
-            print(f"Debug: timefhuman results = {results}", file=sys.stderr)
-            print(f"Debug: results type = {type(results)}", file=sys.stderr)
-        
-        if not results:
-            raise ValueError(f"Could not parse date: {date_input}")
-            
-        result = results[0] if isinstance(results, list) else results
-        
-        # Handle various return types
-        if isinstance(result, tuple):
-            # Date range, convert to list
-            if debug:
-                print(f"Debug: tuple result detected: {result}", file=sys.stderr)
-            dates = list(result)
-        elif isinstance(result, list):
-            # Alternatives, take the first
-            if debug:
-                print(f"Debug: list result detected: {result}", file=sys.stderr)
-            first = result[0]
-            if isinstance(first, tuple):
-                # Date range inside alternatives
-                dates = list(first)
-                if debug:
-                    print(f"Debug: list/tuple detected: {dates}", file=sys.stderr)
-            else:
-                dates = [first]
-        else:
-            # Single datetime
-            if debug:
-                print(f"Debug: single datetime detected: {result}", file=sys.stderr)
-            dates = [result]
-            
-    except Exception as e:
-        print(f"Error parsing date: {e}", file=sys.stderr)
-        import traceback
-        traceback.print_exc(file=sys.stderr)
-        sys.exit(1)
-    
-    if debug:
-        print(f"Debug: final dates list = {dates}", file=sys.stderr)
-    
-    # Convert dates to file paths
-    file_paths = []
-    for date in dates:
-        date_str = date.strftime('%Y-%m-%d')
-        file_path = f'{base_dir}/{date_str}.md'
-        if debug:
-            print(f"Debug: checking file path = {file_path}", file=sys.stderr)
-        
-        # Create file if requested, otherwise only return existing files
-        if create:
-            os.makedirs(base_dir, exist_ok=True)
-            if not os.path.exists(file_path):
-                with open(file_path, 'w') as f:
-                    pass  # Create empty file
-        
-        if os.path.exists(file_path):
-            file_paths.append(file_path)
-            if debug:
-                print(f"Debug: added file path = {file_path}", file=sys.stderr)
-    
-    # If no files exist and we're not creating, return empty list
-    return file_paths
+    base = os.path.expanduser('~/vimwiki/diary')
+    path = f"{base}/{dt.strftime('%Y-%m-%d')}.md"
+    if create and not os.path.exists(path):
+        os.makedirs(base, exist_ok=True)
+        with open(path, 'w'):
+            pass
+    return path
 
+def parse_human_date(text):
+    """
+    Convert human language date into datetime object.
+    
+    Args:
+        text: natural language like 'today', 'this week', 'tomorrow'
+    
+    Returns:
+        datetime object
+    """
+    results = timefhuman(text)
+    if not results:
+        sys.exit(f"Error: could not parse date '{text}'")
+    return results[0] if isinstance(results, list) else results
 
 def main():
-    # Simple argument parsing - any unrecognized argument is considered part of the date
     args = sys.argv[1:]
-    
-    # Check for flags
-    create = False
-    debug = False
-    
-    if '--create' in args:
-        create = True
-        args.remove('--create')
-    
-    if '--debug' in args:
-        debug = True
-        args.remove('--debug')
-    
-    # Join remaining arguments as date input
-    date_input = ' '.join(args) if args else 'today'
-    
-    # Auto-create file for today when no arguments are provided (i.e., when date_input is 'today')
-    if date_input == 'today':
-        create = True
-    
-    if debug:
-        print(f"Debug: final input = '{date_input}'", file=sys.stderr)
-    
-    files = get_date_files(date_input, create=create, debug=debug)
-    
-    # Print all matched file paths
-    for file_path in files:
-        print(file_path)
-
+    if not args:
+        # bare 'today' with auto-create
+        print(datetime_to_filepath(datetime.today(), create=True))
+    else:
+        # combine args into one string and parse
+        text = ' '.join(args)
+        dt = parse_human_date(text)
+        print(datetime_to_filepath(dt))
 
 if __name__ == '__main__':
     main()
