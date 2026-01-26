@@ -80,12 +80,9 @@ if echo "$(zellij ls)" | grep -qE '\(current\)'; then
 fi
 
 
+# mise configuration - using system mise for consistency
+eval "$(mise activate bash)"
 
-alias push="git branch --format='%(refname:short)' | fzf | xargs git push origin"
-alias pull="git branch --format='%(refname:short)' | fzf | xargs git pull origin --rebase"
-alias add="git ls-files --others --exclude-standard | fzf -m | xargs git add"
-
-eval "$(/usr/bin/mise activate bash)"
 if [ "$color_prompt" = yes ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
@@ -142,5 +139,7 @@ if ! shopt -oq posix; then
   fi
 fi
 
-. "$HOME/.local/bin/env"
-eval "$(mise activate bash)"
+#. "$HOME/.local/bin/env" Removed since causes crashes on imac
+
+# Added by otui (https://github.com/hkdb/otui) installation
+source /home/rafa/.config/otui/.otui_profile
