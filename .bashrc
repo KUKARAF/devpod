@@ -75,13 +75,14 @@ export EDITOR=vim
 #
 #
 
-if echo "$(zellij ls)" | grep -qE '\(current\)'; then
-     source ~/.zellijrc
-fi
 
 
 # mise configuration - using system mise for consistency
 eval "$(mise activate bash)"
+
+if echo "$(zellij ls)" | grep -qE '\(current\)'; then
+     source ~/.zellijrc
+fi
 
 if [ "$color_prompt" = yes ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
