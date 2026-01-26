@@ -141,5 +141,3 @@ fi
 
 #. "$HOME/.local/bin/env" Removed since causes crashes on imac
 
-# Added by otui (https://github.com/hkdb/otui) installation
-source /home/rafa/.config/otui/.otui_profile
