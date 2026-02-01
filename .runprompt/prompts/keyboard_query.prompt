@@ -1,3 +1,4 @@
+#!/usr/bin/env runprompt
 ---
 model: openrouter/microsoft/phi-4-multimodal-instruct
 tools:
