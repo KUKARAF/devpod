@@ -6,12 +6,10 @@ tools:
   - find.search_keep
   - find.web_search
 ---
-{% set query = INPUT %}
-
-{% if query %}
-Search for: {{query}}
-{% else %}
+{{#if INPUT}}
+Search for: {{INPUT}}
+{{else}}
 Please provide a search query either as an argument or via standard input.
-{% endif %}
+{{/if}}
 
 Please provide a simple text response summarizing what you found, and include 1-2 of the most relevant links from the search results.

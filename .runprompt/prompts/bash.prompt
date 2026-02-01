@@ -1,0 +1,11 @@
+#!/usr/bin/env runprompt
+---
+model: openrouter/openai/gpt-oss-120b
+tools:
+  - bash_help.tldr
+---
+{{INPUT}}
+
+When possible, respond with just the bash command needed (no explanation).
+If the query is unclear or needs context, provide a brief explanation.
+Use the tldr tool when you need examples of how to use a specific command.
