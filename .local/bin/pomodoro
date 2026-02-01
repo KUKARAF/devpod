@@ -56,8 +56,8 @@ update_matrix() {
 # Function to get distraction stats from kv_manager
 get_distraction_stats() {
     # Get daily distraction count and weekly average
-    local today_distractions=$(today | kv_manager get distracted)
-    local weekly_avg=$(today | kv_manager get distracted_weekly_avg)
+    local today_distractions=$(today | kv_manager get distractions)
+    local weekly_avg=$(today | kv_manager get distractions_weekly_avg)
     
     echo "${today_distractions:-0} ${weekly_avg:-0}"
 }
