@@ -149,8 +149,12 @@ stop_pomodoro() {
     remove_state_var "POMODORO_START_TIME"
     remove_state_var "POMODORO_PID"
     
+    # Get distraction count for display on stop
+    local distraction_stats=($(get_distraction_stats))
+    local today_distractions="${distraction_stats[0]}"
+    update_matrix "d: $today_distractions"
+    
     echo "Pomodoro stopped"
-    update_matrix ""
 }
 
 # Function to extend current timer
@@ -217,11 +221,14 @@ starship_status() {
     remaining_minutes=$((remaining_total / 60))
     remaining_seconds=$((remaining_total % 60))
     
+    # Update matrix display with BREAK message when on break
+    if [ "$current_state" = "break" ]; then
+        update_matrix "BREAK: ${remaining_minutes}:${remaining_seconds}"
+        return
+    fi
+    
     # Update matrix display with minutes:seconds format (no emojis)
     if [ "$current_state" = "work" ]; then
-        local matrix_text="${remaining_minutes}:${remaining_seconds}"
-        update_matrix "$matrix_text"
-    elif [ "$current_state" = "break" ]; then
         local matrix_text="${remaining_minutes}:${remaining_seconds}"
         update_matrix "$matrix_text"
     fi
@@ -266,9 +273,14 @@ waybar_status() {
     remaining_minutes=$((remaining_total / 60))
     remaining_seconds=$((remaining_total % 60))
     
-    # Update matrix display with minutes:seconds format (no emojis)
-    local matrix_text="${remaining_minutes}:${remaining_seconds}"
-    update_matrix "$matrix_text"
+    # Update matrix display with BREAK message when on break
+    if [ "$current_state" = "break" ]; then
+        update_matrix "BREAK: ${remaining_minutes}:${remaining_seconds}"
+    else
+        # Update matrix display with minutes:seconds format (no emojis)
+        local matrix_text="${remaining_minutes}:${remaining_seconds}"
+        update_matrix "$matrix_text"
+    fi
     
     # Output with appropriate symbol and time
     if [ "$current_state" = "work" ]; then
