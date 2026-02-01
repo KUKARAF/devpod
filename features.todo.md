@@ -22,3 +22,7 @@
 ## Shell Enhancements
 - [ ] Git aliases (gr, gs, ga, gc, gp)
 - [ ] fzf key bindings and completion
+- [ ] based on nix
+- [ ] all besed on
+    - [ ] e.g. nix-env -iA nixpkgs.vim-full
+- [ ] remove mise dependencies
