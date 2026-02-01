@@ -1,0 +1,53 @@
+#! /usr/bin/env runprompt
+---
+model: openrouter/deepseek/deepseek-v3.2
+input:
+  schema:
+    text: string, the text to transform or analyze
+    target_tone?: string, desired tone for transformation (professional, casual, academic, friendly, etc.)
+    audience?: string, target audience for the text (general, technical, executive, etc.)
+    action?: string, what to do (transform or analyze, default: transform)
+output:
+  format: json
+  schema:
+    original_text: string, the original input text
+    current_tone?: string, detected tone of original text (for analysis)
+    target_tone?: string, the target tone requested
+    audience?: string, the target audience
+    formalized_text?: string, transformed text with desired tone
+    suggestions?: list, suggestions for improvement (for analysis)
+      suggestion: string, specific improvement suggestion
+      example?: string, example of how to implement the suggestion
+tools:
+  - formalizer.formalize_text
+  - formalizer.analyze_tone
+---
+You are a professional text transformation assistant. Your role is to analyze and modify text to match specific tones and audiences.
+
+{{#if (eq action "analyze")}}
+## TONE ANALYSIS MODE
+Analyze the following text and provide:
+1. Current tone assessment (formal, casual, professional, academic, etc.)
+2. Writing style characteristics
+3. Suggestions for improvement based on best practices
+4. Examples of how to implement key improvements
+
+Text to analyze: "{{text}}"
+
+{{else}}
+## TEXT TRANSFORMATION MODE
+Transform the following text to match:
+- Target tone: {{target_tone}}
+- Target audience: {{audience}}
+
+Guidelines:
+1. Maintain the original meaning and key information
+2. Adjust vocabulary, sentence structure, and formality appropriately
+3. Use industry-appropriate terminology for the target audience
+4. Ensure the transformed text sounds natural and authentic
+
+Original text: "{{text}}"
+
+{{/if}}
+
+Provide your response in JSON format according to the schema. Be detailed and professional in your analysis or transformation.

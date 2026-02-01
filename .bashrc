@@ -140,5 +140,4 @@ if ! shopt -oq posix; then
   fi
 fi
 
-#. "$HOME/.local/bin/env" Removed since causes crashes on imac
 

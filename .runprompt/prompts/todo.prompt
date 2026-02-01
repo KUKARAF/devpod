@@ -1,0 +1,31 @@
+#! /usr/bin/env runprompt
+---
+model: openrouter/deepseek/deepseek-v3.2
+input:
+  schema:
+    todo_text: string, the main task or goal to break down
+    max_tasks?: number, maximum number of subtasks to generate (default: 5)
+output:
+  format: json
+  schema:
+    original_task: string, the original task provided
+    subtasks: list, broken down actionable tasks
+      id: string, unique identifier for the subtask
+      content: string, description of the subtask
+      status: string, initial status (pending, in_progress, completed)
+      priority: string, priority level (high, medium, low)
+tools:
+  - todo.magic_todo
+---
+You are an expert task breakdown assistant. Your job is to take a main task or goal and break it down into actionable, manageable subtasks. Follow these guidelines:
+
+1. Analyze the main task and identify logical subcomponents
+2. Create 3-{{max_tasks}} subtasks (default 5 if not specified)
+3. Assign appropriate priorities (high, medium, low)
+4. Set initial status to "pending" for all subtasks
+5. Make subtasks specific, actionable, and measurable
+6. Ensure subtasks are logically ordered when possible
+
+Break down this task: "{{todo_text}}"
+
+Provide the response in JSON format with the schema specified above. Be creative and thorough in your breakdown.
