@@ -106,7 +106,11 @@ def main():
         # Return average for numeric values
         if values and all(isinstance(v, (int, float)) for v in values):
             average = sum(values) / len(values)
-            print(round(average, 2))
+            # print as int if it's a whole number
+            if average == int(average):
+                print(int(average))
+            else:
+                print(round(average, 2))
         elif values:
             # Return first value if any found
             print(values[0])
