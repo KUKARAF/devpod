@@ -1,4 +1,4 @@
-#! /usr/stdenv runprompt
+#!/usr/bin/env runprompt
 ---
 model: openrouter/openai/gpt-oss-120b
 tools:
