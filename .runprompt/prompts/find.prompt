@@ -17,4 +17,6 @@ Please provide a search query either as an argument or via standard input.
 {% endif %}
 {% endif %}
 
+# This logic above is not quite right we want to always get user query , optionally check for stdio if present simply append to query with "addional context: STDIO" if no query provided simply reply with error AI!
+
 Please provide a simple text response summarizing what you found, and include 1-2 of the most relevant links from the search results.
