@@ -251,6 +251,9 @@ waybar_status() {
     remaining_minutes=$((remaining_total / 60))
     remaining_seconds=$((remaining_total % 60))
     
+    # Update matrix display without emoji
+    update_matrix "${remaining_minutes}:${remaining_seconds}"
+    
     # Output with appropriate symbol and time
     if [ "$current_state" = "work" ]; then
         printf "🍅 %d:%02d" "$remaining_minutes" "$remaining_seconds"
