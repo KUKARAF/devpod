@@ -199,16 +199,31 @@ starship_status() {
     # Calculate remaining time
     local start_time=$(get_state_var "POMODORO_START_TIME" "0")
     local current_time=$(get_state_var "POMODORO_TIME" "0")
-    local remaining
+    local remaining_total
+    local remaining_minutes
+    local remaining_seconds
     
     if [ "$start_time" != "0" ]; then
-        local elapsed=$(( ($(date +%s) - start_time) / 60 ))
-        remaining=$((current_time - elapsed))
-        if [ $remaining -lt 0 ]; then
-            remaining=0
+        local elapsed_seconds=$(($(date +%s) - start_time))
+        local total_seconds=$((current_time * 60))
+        remaining_total=$((total_seconds - elapsed_seconds))
+        if [ $remaining_total -lt 0 ]; then
+            remaining_total=0
         fi
     else
-        remaining=$current_time
+        remaining_total=$((current_time * 60))
+    fi
+    
+    remaining_minutes=$((remaining_total / 60))
+    remaining_seconds=$((remaining_total % 60))
+    
+    # Update matrix display with minutes:seconds format (no emojis)
+    if [ "$current_state" = "work" ]; then
+        local matrix_text="${remaining_minutes}:${remaining_seconds}"
+        update_matrix "$matrix_text"
+    elif [ "$current_state" = "break" ]; then
+        local matrix_text="${remaining_minutes}:${remaining_seconds}"
+        update_matrix "$matrix_text"
     fi
     
     # Output with appropriate symbol and time
@@ -216,13 +231,9 @@ starship_status() {
         local distraction_stats=($(get_distraction_stats))
         local today_distractions="${distraction_stats[0]}"
         local weekly_avg="${distraction_stats[1]}"
-        local matrix_text="🍅 ${remaining}m 📱${today_distractions}(${weekly_avg})"
-        update_matrix "$matrix_text"
-        echo "$matrix_text"
+        echo "🍅 ${remaining_minutes}:${remaining_seconds} 📱${today_distractions}(${weekly_avg})"
     elif [ "$current_state" = "break" ]; then
-        local matrix_text="☕ ${remaining}m"
-        update_matrix "$matrix_text"
-        echo "$matrix_text"
+        echo "☕ ${remaining_minutes}:${remaining_seconds}"
     fi
 }
 
@@ -255,17 +266,17 @@ waybar_status() {
     remaining_minutes=$((remaining_total / 60))
     remaining_seconds=$((remaining_total % 60))
     
-    # Update matrix display with emoji and time
+    # Update matrix display with minutes:seconds format (no emojis)
+    local matrix_text="${remaining_minutes}:${remaining_seconds}"
+    update_matrix "$matrix_text"
+    
+    # Output with appropriate symbol and time
     if [ "$current_state" = "work" ]; then
         local distraction_stats=($(get_distraction_stats))
         local today_distractions="${distraction_stats[0]}"
         local weekly_avg="${distraction_stats[1]}"
-        local matrix_text="🍅 ${remaining_minutes}:${remaining_seconds}"
-        update_matrix "$matrix_text"
         printf "🍅 %d:%02d 📱%s(%s)" "$remaining_minutes" "$remaining_seconds" "$today_distractions" "$weekly_avg"
     elif [ "$current_state" = "break" ]; then
-        local matrix_text="☕ ${remaining_minutes}:${remaining_seconds}"
-        update_matrix "$matrix_text"
         printf "☕ %d:%02d" "$remaining_minutes" "$remaining_seconds"
     fi
 }
