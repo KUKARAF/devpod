@@ -144,7 +144,7 @@ stop_pomodoro() {
         pkill -P "$pid" 2>/dev/null || true
     fi
     
-    set_state_var "POMODORO_STATE" "idle")
+    set_state_var "POMODORO_STATE" "idle"
     remove_state_var "POMODORO_TIME"
     remove_state_var "POMODORO_START_TIME"
     remove_state_var "POMODORO_PID"
