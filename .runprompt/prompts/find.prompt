@@ -1,4 +1,4 @@
-#! /usr/bin/env runprompt
+#! /usr/stdenv runprompt
 ---
 model: openrouter/openai/gpt-oss-120b
 tools:
@@ -6,6 +6,15 @@ tools:
   - find.search_keep
   - find.web_search
 ---
+{% if query %}
 Search for: {{query}}
+{% else %}
+{% set stdin_input = stdin.read() %}
+{% if stdin_input %}
+Search for: {{stdin_input.strip()}}
+{% else %}
+Please provide a search query either as an argument or via standard input.
+{% endif %}
+{% endif %}
 
 Please provide a simple text response summarizing what you found, and include 1-2 of the most relevant links from the search results.
