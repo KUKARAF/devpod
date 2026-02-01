@@ -140,4 +140,4 @@ if ! shopt -oq posix; then
   fi
 fi
 
-
+export PATH="$HOME/.runprompt/prompts:$PATH"
