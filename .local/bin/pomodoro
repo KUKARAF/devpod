@@ -5,6 +5,7 @@
 # Logs completed pomodoros to vimwiki diary via today + kv_manager
 
 # Default settings
+
 WORK_DURATION=60
 BREAK_DURATION=10
 STATE_FILE="$HOME/.pomodoro_state"
@@ -92,7 +93,7 @@ start_pomodoro() {
     set_state_var "POMODORO_START_TIME" "$(date +%s)"
     
     echo "Starting work session: $work_duration minutes"
-    update_matrix "🍅 ${work_duration}m"
+    update_matrix "${work_duration}m"
     
     # Background timer
     (
@@ -109,7 +110,7 @@ start_pomodoro() {
             
             echo "Work session completed! Starting break: $BREAK_DURATION minutes"
             echo "Total pomodoros completed today: $((current_pomodoros + 1))"
-            update_matrix "☕ ${BREAK_DURATION}m"
+            update_matrix "${BREAK_DURATION}m"
             
             # Break timer
             sleep $((BREAK_DURATION * 60))
