@@ -46,6 +46,12 @@ remove_state_var() {
     fi
 }
 
+# Function to update matrix display
+update_matrix() {
+    local text="$1"
+    echo "$text" | ~/.local/bin/show
+}
+
 # Function to get distraction stats from kv_manager
 get_distraction_stats() {
     # Get daily distraction count and weekly average
@@ -86,6 +92,7 @@ start_pomodoro() {
     set_state_var "POMODORO_START_TIME" "$(date +%s)"
     
     echo "Starting work session: $work_duration minutes"
+    update_matrix "🍅 ${work_duration}m"
     
     # Background timer
     (
@@ -102,6 +109,7 @@ start_pomodoro() {
             
             echo "Work session completed! Starting break: $BREAK_DURATION minutes"
             echo "Total pomodoros completed today: $((current_pomodoros + 1))"
+            update_matrix "☕ ${BREAK_DURATION}m"
             
             # Break timer
             sleep $((BREAK_DURATION * 60))
@@ -111,6 +119,7 @@ start_pomodoro() {
                 remove_state_var "POMODORO_START_TIME"
                 remove_state_var "POMODORO_PID"
                 echo "Break completed! Ready for next pomodoro."
+                update_matrix ""
             fi
         fi
     ) &
@@ -140,6 +149,7 @@ stop_pomodoro() {
     remove_state_var "POMODORO_PID"
     
     echo "Pomodoro stopped"
+    update_matrix ""
 }
 
 # Function to extend current timer
