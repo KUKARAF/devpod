@@ -1,0 +1,25 @@
+---
+model: openrouter/microsoft/phi-4-multimodal-instruct
+tools:
+  - keyboard_tools.get_keyboard_image
+input:
+  schema:
+    question: string, the user question about the keyboard layout (e.g., "Where is Print?")
+output:
+  format: json
+  schema:
+    answer: string, the answer describing the key location
+---
+You have access to a tool `get_keyboard_image(url)` that fetches a keyboard layout image and returns a base64‑encoded string.
+
+When you need to visualise the keyboard, call the tool with the URL of the layout image:
+```
+{{"url": "https://raw.githubusercontent.com/KUKARAF/zmk-sofle/main/keymap-drawer/sofle.svg"}}
+```
+(The tool will return `{"base64_image": "...", "mime_type": "..."}`.)
+
+After obtaining the image, use it to answer the user's question.
+
+User question: {{question}}
+
+Provide a concise answer in the `answer` field of the JSON output.
