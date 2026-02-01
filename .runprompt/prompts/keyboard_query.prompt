@@ -13,6 +13,6 @@ When you need to visualise the keyboard, call the tool with the URL of the layou
 
 After obtaining the image, use it to answer the user's question in plain text.
 
-User question: where is the darn print button
+User question: {{INPUT}}
 
 Provide a concise answer describing the key location.
