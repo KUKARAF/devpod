@@ -50,7 +50,7 @@ remove_state_var() {
 # Function to update matrix display
 update_matrix() {
     local text="$1"
-    echo "$text" | ~/.local/bin/show
+    echo "$text" | ~/.local/bin/show &
 }
 
 # Function to get distraction stats from kv_manager
@@ -144,7 +144,7 @@ stop_pomodoro() {
         pkill -P "$pid" 2>/dev/null || true
     fi
     
-    set_state_var "POMODORO_STATE" "idle"
+    set_state_var "POMODORO_STATE" "idle")
     remove_state_var "POMODORO_TIME"
     remove_state_var "POMODORO_START_TIME"
     remove_state_var "POMODORO_PID"
