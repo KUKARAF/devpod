@@ -28,20 +28,8 @@ def datetime_to_filepath(dt, create=False):
             pass
     return path
 
-def parse_human_date(text):
-    """
-    Convert human language date into datetime object.
-    
-    Args:
-        text: natural language like 'today', 'this week', 'tomorrow'
-    
-    Returns:
-        datetime object
-    """
-    parsed = timefhuman(text)
-    breakpoint()
     # return first item regardless of list length; IndexError on empty list is acceptable
-    return next(iter(parsed))
+    return parsed
 
 def main():
     args = sys.argv[1:]
@@ -50,8 +38,9 @@ def main():
         print(datetime_to_filepath(datetime.today(), create=True))
     else:
         # combine args into one string and parse
+        breakpoint()
         text = ' '.join(args)
-        dt = parse_human_date(text)
+        dt = timefhuman(text)
         print(datetime_to_filepath(dt))
 
 if __name__ == '__main__':

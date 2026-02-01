@@ -3,3 +3,4 @@ logs.db
 .env
 keys.json
 openrouter_models.json
+__pycache__

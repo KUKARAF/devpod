@@ -2,7 +2,7 @@ read:
   - CONVENTIONS.md
 
 vim: false
-detect-urls: false
+detect-urls: true
 #model: codestral/codestral-latest
 #model: groq/openai/gpt-oss-120b
 #model: openrouter/moonshotai/kimi-k2-thinking
@@ -10,4 +10,6 @@ model: groq/moonshotai/kimi-k2-instruct-0905
 timeout: 30
 cache-prompts: true
 show-diffs: true
+git-commit-verify: true
+no-auto-commits: true
 weak-model: groq/openai/gpt-oss-20b
