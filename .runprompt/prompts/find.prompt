@@ -6,15 +6,10 @@ tools:
   - find.search_keep
   - find.web_search
 ---
-{% set stdin_input = stdin.read() if stdin.readable else "" %}
-{% set query = ARGS %}
+{% set query = INPUT %}
 
-{% if query and stdin_input %}
-Search for: {{query}} additional context: {{stdin_input.strip()}}
-{% elif query %}
+{% if query %}
 Search for: {{query}}
-{% elif stdin_input %}
-Search for: {{stdin_input.strip()}}
 {% else %}
 Please provide a search query either as an argument or via standard input.
 {% endif %}
