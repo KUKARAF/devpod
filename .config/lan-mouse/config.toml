@@ -1,0 +1,11 @@
+# Lan Mouse config for imac
+
+port = 4242
+
+# thinkpad positioned on bottom
+[[clients]]
+position = "bottom"
+hostname = "thinkpad"
+ips = ["192.168.1.84"]
+activate_on_startup = true
+port = 4242
