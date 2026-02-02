@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/rafa/.config/dotfiles/.venv/bin/python3
 """Single-file utility for running .prompt scripts."""
 import sys
 import os

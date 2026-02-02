@@ -1,4 +1,4 @@
-#!/home/rafa/.config/dotfiles/.local/bin/.venv/bin/python3
+#!/home/rafa/.config/dotfiles/.venv/bin/python
 """
 CLI tool for managing todos from markdown files.
 
