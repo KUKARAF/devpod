@@ -141,9 +141,14 @@ if ! shopt -oq posix; then
 fi
 
 export PATH="$HOME/.runprompt/prompts:$PATH"
+<<<<<<< Updated upstream
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/home/rafa/Downloads/google-cloud-cli-linux-x86_64/google-cloud-sdk/path.bash.inc' ]; then . '/home/rafa/Downloads/google-cloud-cli-linux-x86_64/google-cloud-sdk/path.bash.inc'; fi
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/home/rafa/Downloads/google-cloud-cli-linux-x86_64/google-cloud-sdk/completion.bash.inc' ]; then . '/home/rafa/Downloads/google-cloud-cli-linux-x86_64/google-cloud-sdk/completion.bash.inc'; fi
+=======
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"
+>>>>>>> Stashed changes
