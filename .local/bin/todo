@@ -160,23 +160,23 @@ def cmd_get(files: list[str]) -> None:
 def cmd_edit(files: list[str]) -> None:
     """Open all files in default editor"""
     editor = os.environ.get('EDITOR', 'vim')
-    
-    # Remove duplicates while preserving order
+
     unique_files = []
     seen = set()
     for f in files:
         if f not in seen:
             unique_files.append(f)
             seen.add(f)
-    
+
     try:
-        subprocess.run([editor] + unique_files, check=True)
+        # Redirect stdin to terminal so editor works properly with pipes
+        with open('/dev/tty') as tty:
+            subprocess.run([editor] + unique_files, stdin=tty, check=True)
     except FileNotFoundError:
         print(f"Error: Editor '{editor}' not found", file=sys.stderr)
         sys.exit(1)
     except KeyboardInterrupt:
         print("\nEdit cancelled")
-
 
 def cmd_add(task_text: str) -> None:
     """Add a new todo item"""
