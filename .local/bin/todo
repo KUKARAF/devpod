@@ -22,6 +22,7 @@ from todo import Todo
 
 try:
     from timefhuman import timefhuman
+    from timefhuman import tfhConfig
 except ImportError:
     raise ImportError("timefhuman is required. Install with: pip install timefhuman")
 
@@ -180,21 +181,19 @@ def cmd_edit(files: list[str]) -> None:
 
 def cmd_add(task_text: str) -> None:
     """Add a new todo item"""
-    
-    # Extract due date if present
     due_match = re.search(r'due:(\S+)', task_text)
     due_date = None
     target_file = None
-    
+
     if due_match:
         due_str = due_match.group(1)
-        # Parse with timefhuman using today as context
         try:
-            results = timefhuman(due_str, now=datetime.now())
+            # Create config with current time as reference
+            config = tfhConfig(now=datetime.now())
+            results = timefhuman(due_str, config=config)
+            
             if results:
                 result = results[0] if isinstance(results, list) else results
-                
-                # Handle various return types
                 if isinstance(result, tuple):
                     due_date = result[0]
                 elif isinstance(result, list):
@@ -202,13 +201,9 @@ def cmd_add(task_text: str) -> None:
                     due_date = first[0] if isinstance(first, tuple) else first
                 else:
                     due_date = result
-                
-                # Debug output
-                print(f"Debug: Parsed due date: {due_date}", file=sys.stderr)
         except Exception as e:
             print(f"Error parsing due date: {e}", file=sys.stderr)
-            sys.exit(1)
-    
+            sys.exit(1) 
     # Determine target file
     if due_date:
         target_file = DEFAULT_TODO_DIR / f"{due_date.strftime('%Y-%m-%d')}.md"

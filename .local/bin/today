@@ -1,18 +1,14 @@
 #!/home/rafa/.config/dotfiles/.venv/bin/python3
-
 import os
 import sys
 from datetime import datetime
 
-
 def datetime_to_filepath(dt, create=False):
     """
     Convert datetime object to vimwiki diary file path.
-    
     Args:
         dt: datetime object
         create: if True and file doesn't exist, create it
-    
     Returns:
         absolute file path string
     """
@@ -24,21 +20,33 @@ def datetime_to_filepath(dt, create=False):
             pass
     return path
 
-    # return first item regardless of list length; IndexError on empty list is acceptable
-    return parsed
-
 def main():
-    from timefhuman import timefhuman
+    from timefhuman import timefhuman, tfhConfig
     args = sys.argv[1:]
+    
     if not args:
         # bare 'today' with auto-create
         print(datetime_to_filepath(datetime.today(), create=True))
     else:
         # combine args into one string and parse
-        breakpoint()
         text = ' '.join(args)
-        dt = timefhuman(text)
-        print(datetime_to_filepath(dt))
+        config = tfhConfig(now=datetime.now())
+        results = timefhuman(text, config=config)
+        
+        if results:
+            # Extract first datetime from results
+            result = results[0]
+            if isinstance(result, tuple):
+                dt = result[0]  # range, take start
+            elif isinstance(result, list):
+                dt = result[0]  # list, take first
+            else:
+                dt = result  # single datetime
+            
+            print(datetime_to_filepath(dt))
+        else:
+            print(f"Could not parse: {text}", file=sys.stderr)
+            sys.exit(1)
 
 if __name__ == '__main__':
     main()
