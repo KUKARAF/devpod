@@ -6,5 +6,5 @@ model: groq/moonshotai/kimi-k2-instruct-0905
 timeout: 30
 cache-prompts: true
 show-diffs: true
-no-auto-commits: true
+auto-commits: false
 weak-model: groq/openai/gpt-oss-20b
