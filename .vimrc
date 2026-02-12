@@ -42,6 +42,7 @@ nnoremap <silent> <leader>t :Files<CR>
 nnoremap <leader>h :bprevious<CR>
 nnoremap <leader>l :bnext<CR>
 nnoremap <leader>r :e!<CR>
+nnoremap <leader><leader> :e!<CR>
 "  nnoremap <silent> <leader>h :bprevious<CR>
 "  nnoremap <silent> <leader>l :bnext<CR>
 function! AskQuestion(question)
