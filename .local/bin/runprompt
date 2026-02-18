@@ -1,5 +1,18 @@
-#!/home/rafa/.config/dotfiles/.venv/bin/python3
-"""Single-file utility for running .prompt scripts."""
+#!/usr/bin/env python3
+"""
+runprompt: A single-file runner for .prompt (Dotprompt) files.
+
+This utility parses .prompt files containing YAML frontmatter and Handlebars
+templates, executes pre-processing shell commands, attaches file context,
+and manages LLM interactions with support for tool calling and caching.
+
+Key Functions:
+- main(): Entry point handling CLI arguments and the execution loop.
+- render_template(): A subset of Handlebars for dynamic prompt generation.
+- load_tools(): Dynamically imports Python and builtin functions as LLM tools.
+- make_request(): Handles API communication across multiple providers.
+- get_conf(): Implements the configuration priority cascade.
+"""
 import sys
 import os
 import json
@@ -14,6 +27,7 @@ import argparse
 import glob
 import base64
 import mimetypes
+import socket
 
 # Try to use PyYAML if available, otherwise use minimal parser
 try:
@@ -242,6 +256,12 @@ def main():
             if input_schema:
                 first_key = list(input_schema.keys())[0]
                 variables[first_key] = args_str
+    
+    # Execute before: shell commands if present
+    before_commands = meta.get("before", {})
+    if before_commands:
+        execute_before_commands(before_commands, variables)
+    
     validate_required_inputs(meta, variables)
     prompt = render_template(template, variables)
     log("Rendered prompt: %s" % prompt)
@@ -290,6 +310,13 @@ def main():
     if tool_specs:
         tools = load_tools(tool_specs, search_paths)
         log("Loaded %d tools: %s" % (len(tools), list(tools.keys())))
+    
+    # Load shell_tools
+    shell_tool_specs = meta.get("shell_tools", {})
+    if shell_tool_specs:
+        shell_tools = load_shell_tools(shell_tool_specs)
+        tools.update(shell_tools)
+        log("Loaded %d shell tools: %s" % (len(shell_tools), list(shell_tools.keys())))
 
     # Determine effective provider early for file reading
     base_url = get_conf("base_url") or get_base_url()
@@ -304,7 +331,11 @@ def main():
             print("%sError: 'files' frontmatter must be a list%s" %
                   (RED, RESET), file=sys.stderr)
             sys.exit(1)
-        read_patterns.extend(meta.get("files") or [])
+        # Render template variables in files: patterns
+        raw_patterns = meta.get("files") or []
+        for pattern in raw_patterns:
+            rendered_pattern = render_template(pattern, variables)
+            read_patterns.append(rendered_pattern)
 
     if args.read:
         read_patterns.extend(args.read)
@@ -577,16 +608,48 @@ def _parse_yaml_minimal(s):
     stack = [(result, -1)]
     current_list = None
     current_list_indent = -1
-    for line in s.split("\n"):
+    current_multiline = None
+    current_multiline_indent = -1
+    current_multiline_base_indent = -1
+    lines = s.split("\n")
+    i = 0
+    while i < len(lines):
+        line = lines[i]
         if not line.strip() or line.strip().startswith("#"):
+            i += 1
             continue
         indent = len(line) - len(line.lstrip())
+        
+        # Handle multiline string continuation
+        if current_multiline is not None:
+            if indent > current_multiline_indent or not line.strip():
+                # First content line - establish base indent
+                if current_multiline_base_indent == -1 and line.strip():
+                    current_multiline_base_indent = indent
+                # Continuation of multiline string
+                if line.strip():
+                    current_multiline["lines"].append(line[current_multiline_base_indent:])
+                else:
+                    current_multiline["lines"].append("")
+                i += 1
+                continue
+            else:
+                # End of multiline string
+                parent = current_multiline["parent"]
+                key = current_multiline["key"]
+                parent[key] = "\n".join(current_multiline["lines"])
+                current_multiline = None
+                current_multiline_indent = -1
+                current_multiline_base_indent = -1
+                # Don't increment i, process this line normally
+        
         # Check if this is a list item
         list_match = re.match(r"^(\s*)-\s*(.*)", line)
         if list_match:
             item_value = list_match.group(2).strip()
             if current_list is not None and indent >= current_list_indent:
                 current_list.append(parse_yaml_value(item_value) if item_value else item_value)
+                i += 1
                 continue
         # Not a list item - reset list tracking if we've dedented
         if current_list is not None and indent <= current_list_indent:
@@ -599,10 +662,25 @@ def _parse_yaml_minimal(s):
             stack = [(result, -1)]
         match = re.match(r"^(\s*)([^:]+):\s*(.*)", line)
         if not match:
+            i += 1
             continue
         key = match.group(2).strip()
         value = match.group(3).strip()
         parent = stack[-1][0]
+        
+        # Check for multiline string indicator (| or >)
+        if value in ("|", ">"):
+            current_multiline = {
+                "parent": parent,
+                "key": key,
+                "lines": [],
+                "style": value
+            }
+            current_multiline_indent = indent
+            current_multiline_base_indent = -1
+            i += 1
+            continue
+        
         if value:
             parent[key] = parse_yaml_value(value)
             # Reset list tracking when we have a value
@@ -610,11 +688,9 @@ def _parse_yaml_minimal(s):
             current_list_indent = -1
         else:
             # Check if next non-empty line is a list item
-            remaining_lines = s.split("\n")
-            line_idx = remaining_lines.index(line) if line in remaining_lines else -1
             is_list_parent = False
-            if line_idx >= 0:
-                for next_line in remaining_lines[line_idx + 1:]:
+            if i + 1 < len(lines):
+                for next_line in lines[i + 1:]:
                     if not next_line.strip() or next_line.strip().startswith("#"):
                         continue
                     next_indent = len(next_line) - len(next_line.lstrip())
@@ -632,6 +708,15 @@ def _parse_yaml_minimal(s):
                 stack.append((parent[key], indent))
                 current_list = None
                 current_list_indent = -1
+        i += 1
+    
+    # Handle any remaining multiline string
+    if current_multiline is not None:
+        parent = current_multiline["parent"]
+        key = current_multiline["key"]
+        parent[key] = "\n".join(current_multiline["lines"])
+        current_multiline_base_indent = -1
+    
     return result
 
 
@@ -662,6 +747,9 @@ def parse_yaml_value(s):
         parsed = parse_yaml(s)
         if parsed:
             return parsed
+    # Strip surrounding quotes (single or double) to match PyYAML behavior
+    if len(s) >= 2 and s[0] in ('"', "'") and s[-1] == s[0]:
+        return s[1:-1]
     return s
 
 
@@ -1015,6 +1103,14 @@ def make_request(url, api_key, model, messages, output_config, provider, tools=N
         response = json.loads(response_body)
         response["_elapsed"] = elapsed
         return response
+    except (socket.gaierror, socket.timeout, urllib.error.URLError) as e:
+        error_detail = str(e.reason) if hasattr(e, 'reason') else str(e)
+        print("%sNetwork error: %s%s" % (RED, error_detail, RESET),
+              file=sys.stderr)
+        print("Please check your network connection and verify the remote "
+              "server is accessible.", file=sys.stderr)
+        log("Network error details: %s" % e)
+        sys.exit(1)
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8")
         log("Error response: %s" % error_body)
@@ -1306,6 +1402,90 @@ def build_tool_result_message(tool_call, result, error, provider):
 
 
 # === TOOL LOADING & SCHEMA ===
+
+
+def load_shell_tools(shell_tool_specs):
+    """Load shell script tools from shell_tools: frontmatter."""
+    tools = {}
+    
+    for name, spec in shell_tool_specs.items():
+        # Handle short form: name: "command"
+        if isinstance(spec, str):
+            cmd = spec
+            safe = False
+            description = cmd
+        # Handle long form: name: {cmd: ..., safe: ..., description: ...}
+        elif isinstance(spec, dict):
+            cmd = spec.get("cmd")
+            if not cmd:
+                print("%sWarning: shell_tool '%s' missing 'cmd' field%s" %
+                      (YELLOW, name, RESET), file=sys.stderr)
+                continue
+            safe = spec.get("safe", False)
+            description = spec.get("description", cmd)
+        else:
+            print("%sWarning: shell_tool '%s' has invalid spec%s" %
+                  (YELLOW, name, RESET), file=sys.stderr)
+            continue
+        
+        # Create the tool function
+        func = create_shell_tool(name, cmd, description, safe)
+        schema = function_to_tool_schema(func)
+        if schema:
+            schema['function']['name'] = name
+            tools[name] = {"schema": schema, "func": func}
+            log("Loaded shell tool: %s" % name)
+    
+    return tools
+
+
+def create_shell_tool(name, cmd, description, safe):
+    """Create a shell tool function with the given command."""
+    def shell_tool(args: str = "", **env_vars):
+        """Execute shell command with optional args and environment variables."""
+        import subprocess
+        
+        # Build environment with provided env vars
+        env = os.environ.copy()
+        for key, value in env_vars.items():
+            env[key] = str(value)
+        
+        # Build full command
+        full_cmd = cmd
+        if args:
+            full_cmd = "%s %s" % (cmd, args)
+        
+        # Use user's configured shell, fallback to /bin/sh
+        shell = env.get("SHELL", "/bin/sh")
+        
+        log("Running shell tool '%s': %s" % (name, full_cmd))
+        try:
+            result = subprocess.run(
+                [shell, "-c", full_cmd],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                env=env,
+            )
+            if result.returncode == 0:
+                return result.stdout.rstrip('\n')
+            else:
+                return {
+                    "returncode": result.returncode,
+                    "stdout": result.stdout.rstrip('\n'),
+                    "stderr": result.stderr.rstrip('\n'),
+                }
+        except subprocess.TimeoutExpired:
+            raise RuntimeError("Command timed out after 30 seconds")
+        except Exception as e:
+            raise RuntimeError("Command failed: %s" % str(e))
+    
+    # Set docstring and metadata
+    shell_tool.__doc__ = description
+    shell_tool.safe = safe
+    shell_tool.__name__ = name
+    
+    return shell_tool
 
 
 def load_tools(tool_specs, search_paths):
@@ -1879,6 +2059,15 @@ def build_media_block(file_info, provider):
     
     b64_data = base64.b64encode(content).decode('ascii')
     if provider == "anthropic":
+        if mime_type.startswith("audio/"):
+            return {
+                "type": "audio",
+                "source": {
+                    "type": "base64",
+                    "media_type": mime_type,
+                    "data": b64_data,
+                }
+            }
         if mime_type == "application/pdf":
             return {
                 "type": "document",
@@ -1898,6 +2087,19 @@ def build_media_block(file_info, provider):
         }
     else:
         # OpenAI format (also used by Google AI compat layer, OpenRouter)
+        if mime_type.startswith("audio/"):
+            # OpenAI / OpenRouter format
+            audio_format = "mp3"
+            if "wav" in mime_type:
+                audio_format = "wav"
+            return {
+                "type": "input_audio",
+                "input_audio": {
+                    "data": b64_data,
+                    "format": audio_format
+                }
+            }
+
         data_url = "data:%s;base64,%s" % (mime_type, b64_data)
         if mime_type.startswith("image/"):
             return {"type": "image_url", "image_url": {"url": data_url}}
@@ -1935,12 +2137,71 @@ def build_content_with_files(prompt, files, provider):
                 # Handle bytes content from URL downloads
                 if isinstance(file_content, bytes):
                     file_content = file_content.decode('utf-8', errors='replace')
+                # Use placeholder for empty files
+                if not file_content or not file_content.strip():
+                    file_content = "[EMPTY FILE]"
                 content.append({"type": "text", "text": file_content})
             else:
                 content.append({"type": "text", "text": "[Content not available]"})
     # Add the main prompt
     content.append({"type": "text", "text": "\n# Prompt\n\n" + prompt})
     return content
+
+
+# === BEFORE COMMANDS ===
+
+
+def execute_before_commands(before_commands, variables):
+    """Execute shell commands from before: frontmatter and add outputs to variables."""
+    import subprocess
+    
+    if not isinstance(before_commands, dict):
+        print("%sError: 'before' must be a dict of name: command pairs%s" %
+              (RED, RESET), file=sys.stderr)
+        sys.exit(1)
+    
+    # Build environment with current variables
+    env = os.environ.copy()
+    for key, value in variables.items():
+        env[key] = str(value)
+    
+    # Use user's configured shell, fallback to /bin/sh
+    shell = env.get("SHELL", "/bin/sh")
+    
+    before_outputs = []
+    for name, command in before_commands.items():
+        log("Running before command '%s': %s" % (name, command))
+        try:
+            result = subprocess.run(
+                [shell, "-c", command],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                env=env,
+            )
+            if result.returncode == 0:
+                output = result.stdout.rstrip('\n')
+                variables[name] = output
+                before_outputs.append(output)
+                log("Command '%s' succeeded: %s" % (name, output[:100]))
+            else:
+                error = result.stderr.rstrip('\n')
+                variables[name] = error
+                before_outputs.append(error)
+                log("Command '%s' failed: %s" % (name, error[:100]))
+        except subprocess.TimeoutExpired:
+            error = "Command timed out after 30 seconds"
+            variables[name] = error
+            before_outputs.append(error)
+            log("Command '%s' timed out" % name)
+        except Exception as e:
+            error = str(e)
+            variables[name] = error
+            before_outputs.append(error)
+            log("Command '%s' error: %s" % (name, error))
+    
+    # Add combined BEFORE variable
+    variables["BEFORE"] = "\n".join(before_outputs)
 
 
 # === BUILTIN TOOLS ===
