@@ -2,19 +2,12 @@
 ---
 model: openrouter/openai/gpt-oss-120b
 tools:
-  - todo.get_todays_todos
+  - todo.get_todos
 ---
 
-You have a markdown file for today's tasks. The file contains a list of incomplete tasks in the format:
-
-```
-- [ ] Buy groceries
-- [ ] Write report for project X
-- [ ] Call Alice about the meeting
-```
-
-Your job is to read the contents of this file and provide a time estimate for each task. Feel free to split tasks into more steps for better accuracy. 
-Minimal time for task is 1 hour
+Your job is to read the contents of the md todo file and provide a time estimate for each unfinished task. 
+Feel free to split tasks into more steps for better accuracy and return that list (subtasks should be indented). 
+If tasks are not clear enough (and only then!) ask clarifying questions one task at a time.
 
 Output should be in the same markdown format as the input file
 
