@@ -276,13 +276,19 @@ def cmd_done_interactive(files: list[str]) -> None:
         except ValueError:
             continue
 
+    # Show remaining todos after marking done
+    cmd_show(files)
+
 
 def cmd_done_direct(file_path: str, line_number: str) -> None:
     """Mark a specific todo line as done"""
+    files = [file_path]
     try:
         line = int(line_number)
         Todo.mark_done(file_path, line)
         print(f"✅ Marked line {line_number} in {Path(file_path).name} as done")
+        # Show remaining todos from this file
+        cmd_show(files)
     except Exception as e:
         print(f"Error marking done: {e}", file=sys.stderr)
         sys.exit(1)
