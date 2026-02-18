@@ -1,0 +1,20 @@
+#!/usr/bin/env runprompt
+---
+model: openrouter/openai/gpt-oss-120b
+tools:
+  - todo.get_todays_todos
+---
+
+You have a markdown file for today's tasks. The file contains a list of incomplete tasks in the format:
+
+```
+- [ ] Buy groceries
+- [ ] Write report for project X
+- [ ] Call Alice about the meeting
+```
+
+Your job is to read the contents of this file and provide a time estimate for each task. Feel free to split tasks into more steps for better accuracy. 
+Minimal time for task is 1 hour
+
+Output should be in the same markdown format as the input file
+
