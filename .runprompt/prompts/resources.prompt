@@ -1,0 +1,36 @@
+#!/usr/bin/env runprompt
+---
+model: openrouter/openai/gpt-oss-120b
+tools:
+  - jina.fetch_url
+  - builtin.write_file('resources.md')
+before:
+  specs: cat specs.md 2>/dev/null || echo "[No specs.md]"
+---
+
+You are a senior Python engineer building an implementation reference document.
+
+## specs.md
+```markdown
+{{specs}}
+```
+
+## Links to process (JSON from stdin)
+```json
+{{STDIN}}
+```
+
+## Focus
+{{INPUT}}
+
+## Instructions
+
+1. Extract every URL from the `links` array above.
+2. Fetch each one with `fetch_url`, filtering content through the lens of specs.md and the focus above.
+3. Write `resources.md` from scratch using `write_file_resources_md`. Structure it by topic. For each source include:
+   - Exact code snippets
+   - API endpoints, parameters, auth details
+   - Gotchas, version requirements
+   - Low-level details a developer needs during implementation
+
+No fluff. Skip links that have nothing relevant. Note failed fetches briefly and move on.

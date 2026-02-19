@@ -1,1 +1,3 @@
 .venv
+.stow-local-ignore
+.tools

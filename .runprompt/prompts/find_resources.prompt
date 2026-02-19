@@ -1,0 +1,28 @@
+#!/usr/bin/env runprompt
+---
+model: openrouter/openai/gpt-oss-120b
+tools:
+  - jina.search_web
+output:
+  format: json
+  schema:
+    links: array, list of relevant URLs found
+before:
+  specs: cat specs.md 2>/dev/null || echo "[No specs.md]"
+---
+
+You are a research assistant finding implementation resources for a Python project.
+
+## specs.md
+```markdown
+{{specs}}
+```
+
+## Search focus
+{{INPUT}}
+
+## Instructions
+
+Read specs.md and the search focus above. Identify the key technical areas that need resources, then run 3-6 targeted `search_web` calls. Prioritise official docs, GitHub repos, and real code examples over blog posts.
+
+Return a JSON object with a `links` array of 10-20 high quality, deduplicated URLs.
