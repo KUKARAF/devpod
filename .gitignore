@@ -5,3 +5,5 @@ keys.json
 openrouter_models.json
 __pycache__
 .config/lan-mouse/lan-mouse.pem
+.aider*
+.env
