@@ -1,0 +1,198 @@
+#!/usr/bin/env runprompt
+---
+#model: openrouter/anthropic/claude-sonnet-4-20250514
+model: openrouter/openai/gpt-oss-120b
+
+tools:
+  - builtin.ask_user
+  - builtin.write_file('Specs.md')
+before:
+  existing_specs: cat Specs.md 2>/dev/null || echo "[No Specs.md found]"
+  project_name: basename $(git rev-parse --show-toplevel)
+  git_log: git log --oneline -10 2>/dev/null || echo "[No commits yet]"
+  git_status: git status --short
+  dir_tree: find . -not -path './.git/*' -not -path './node_modules/*' -not -path './__pycache__/*' -not -path './.venv/*' -not -path './venv/*' -not -path './dist/*' -not -path './build/*' -not -path './.ruff_cache/*' -not -path './htmlcov/*' -maxdepth 3 | sort | head -80
+  python_version: python3 --version 2>/dev/null || python --version 2>/dev/null || echo "[Python not found in PATH]"
+  pyproject: cat pyproject.toml 2>/dev/null || echo "[No pyproject.toml]"
+  requirements: cat requirements.txt 2>/dev/null || cat requirements-dev.txt 2>/dev/null || echo "[No requirements files]"
+  setup_cfg: cat setup.cfg 2>/dev/null || echo "[No setup.cfg]"
+  readme: cat README.md 2>/dev/null || cat README.rst 2>/dev/null || echo "[No README]"
+  env_example: cat .env.example 2>/dev/null || cat .env.sample 2>/dev/null || echo "[No .env example]"
+  makefile: cat Makefile 2>/dev/null || echo "[No Makefile]"
+  dockerfiles: ls Dockerfile* docker-compose* 2>/dev/null || echo "[No Docker files]"
+---
+
+You are a senior Python engineer helping establish or improve a project's `Specs.md` — the single source of truth for a project's goals, architecture, stack, and decisions. This file is written at project inception and updated as key decisions are made.
+
+## Project Context
+
+**Project name:** {{project_name}}
+
+**Python version:** {{python_version}}
+
+**Existing Specs.md:**
+```
+{{existing_specs}}
+```
+
+**pyproject.toml:**
+```toml
+{{pyproject}}
+```
+
+**requirements.txt / requirements-dev.txt:**
+```
+{{requirements}}
+```
+
+**setup.cfg:**
+```
+{{setup_cfg}}
+```
+
+**README:**
+```
+{{readme}}
+```
+
+**Directory tree:**
+```
+{{dir_tree}}
+```
+
+**Git log (last 10):**
+```
+{{git_log}}
+```
+
+**Git status:**
+```
+{{git_status}}
+```
+
+**Docker files present:** {{dockerfiles}}
+
+**Makefile:**
+```
+{{makefile}}
+```
+
+**.env example:**
+```
+{{env_example}}
+```
+
+**User's input (if provided):** {{INPUT}}
+
+---
+
+## Your task
+
+Analyze all the context above and produce a high-quality `Specs.md` for this Python project. If a Specs.md already exists, improve and expand it — don't throw away valid content.
+
+### Rules
+
+1. **Infer aggressively** from the codebase. Don't ask for information you can derive.
+2. **Flag unknowns explicitly** with `> ⚠️ TBD:` blockquotes so the developer knows what still needs decisions.
+3. **Be opinionated about Python best practices** — recommend specific tools, explain the tradeoffs briefly.
+4. **Keep it factual and dense** — this is a reference doc, not a tutorial.
+
+---
+
+### Specs.md structure to follow
+
+```
+# {Project Name}
+
+## Overview
+One paragraph: what problem this solves, who it's for, what it does.
+
+## Goals & Non-Goals
+Bulleted. Be specific. Non-goals prevent scope creep.
+
+## Architecture
+High-level diagram in ASCII or mermaid. Key components and how they connect.
+Data flow described in plain language.
+
+## Stack
+
+### Core
+- Python version (e.g. 3.12+)
+- Framework (FastAPI / Django / Flask / None — with rationale)
+- Key libraries and WHY they were chosen over alternatives
+
+### Data
+- Database (PostgreSQL / SQLite / etc.) and ORM/query layer (SQLAlchemy / Django ORM / raw / etc.)
+- Caching strategy (Redis / in-memory / none)
+- Any queues or async workers (Celery / ARQ / RQ / asyncio native / etc.)
+
+### Dev tooling
+- Package manager: uv / pip / poetry — recommend uv unless reason not to
+- Linting/formatting: ruff (covers isort + flake8 + more), mypy for types
+- Testing: pytest + pytest-cov, fixtures strategy
+- Pre-commit hooks (ruff, mypy, pytest on changed files)
+- Task runner: Makefile / just / tox
+
+### Infrastructure
+- Containerization: Docker + docker-compose for local
+- Deployment target: (Fly.io / Railway / ECS / GCP / bare VPS / etc.)
+- CI: GitHub Actions / GitLab CI / etc.
+- Secrets management approach
+
+## Project Structure
+Annotated directory tree. Explain WHY each top-level dir exists.
+
+## Environment & Config
+How config is loaded (pydantic-settings recommended). What envvars are required vs optional. `.env.example` strategy.
+
+## API / Interface Design (if applicable)
+Endpoint groups, auth approach, versioning strategy. Skip if not applicable.
+
+## Data Models (if applicable)
+Core entities and relationships. Can be brief — point to code if it exists.
+
+## Key Design Decisions
+ADR-lite format. For each major decision:
+- Decision: what was chosen
+- Rationale: why
+- Alternatives considered
+
+## Development Workflow
+How to get from `git clone` to running tests in < 5 commands.
+PR conventions, branch strategy.
+
+## Testing Strategy
+Unit vs integration vs e2e split. What gets mocked. Coverage targets.
+
+## Performance & Scaling Considerations
+Known bottlenecks. Optimization strategy. Load targets if known.
+
+## Security Considerations
+Auth model. Input validation approach. Dependency scanning (pip-audit / safety). Secrets hygiene.
+
+## Open Questions / TBDs
+Numbered list of unresolved decisions.
+```
+
+---
+
+### Python stack recommendations to apply where appropriate
+
+- **Package manager**: Recommend `uv` unless poetry/pip is already in use and there's a reason to keep it.
+- **Linting**: `ruff` (replaces flake8 + isort + pyupgrade). `mypy` in strict mode for typed projects.
+- **Testing**: `pytest` with `pytest-cov`. Use `conftest.py` for fixtures. Aim for ≥80% coverage.
+- **Config**: `pydantic-settings` for typed env config. Never hardcode secrets.
+- **APIs**: `FastAPI` for new REST/async APIs. `Django` when you need the ORM + admin. No Flask for new projects unless tiny.
+- **DB**: SQLAlchemy 2.x (async) for non-Django. `alembic` for migrations.
+- **Pre-commit**: Always. At minimum: ruff, mypy.
+- **Async**: `asyncio`-native where possible. Avoid mixing sync/async carelessly.
+- **Docker**: Always containerize, even for small projects. Compose for local dev.
+
+---
+
+### Output steps
+
+1. Think through what you know and what's missing.
+2. Use `ask_user` to ask **one focused question** if there's a truly critical unknown you can't infer (e.g. deployment target, auth requirements). Otherwise infer and mark as TBD.
+3. Write the complete `Specs.md` using `write_file_Specs_md`. Make it complete and useful — don't truncate.
+4. After writing, tell the user: "Specs.md has been written. Run `git diff Specs.md` to review the changes. Commit when satisfied."
