@@ -1,59 +1,128 @@
-# Vim Plugins and Development Environment
+# Dotfiles and Development Environment
 
-This repository contains a collection of vim plugins and a development environment setup using Docker and distrobox.
+This repository contains dotfiles and scripts for setting up a development environment with a focus on modularity and flexibility.
 
-## Quick Setup
+## Key Changes from Previous Approach
 
-### 1. Install Vim Plugins
+- **Removed**: LLM and ask tools (no longer used)
+- **Restructured**: Moved helper scripts from root to `.tools/*.sh` directory
+- **Split installation**: Separated vim plugin installation from main setup
+- **Updated distrobox**: Now uses `ghcr.io/kukaraf/devpod:latest` image
+- **New prerequisites**: Added dedicated script for Silverblue setup
 
-Run this command to set up vim plugins:
+## Setup Guide
+
+### 1. Prerequisites (Silverblue)
+
+For Fedora Silverblue, run the prerequisites installer:
 ```bash
-curl -sSL https://github.com/KUKARAF/devpod/blob/f3e9012229ece795b6eb6f66507acf22946b3f35/setup_vim_plugins.sh | bash
+./.tools/silverblue_prerequisites_install.sh
 ```
 
-## Using with Distrobox
+This installs:
+- `stow` (for dotfile management)
+- `btop` (system monitor)
+- `distrobox` (container management)
 
-### Prerequisites
-- distrobox
-- wget
-- zellij (can be installed inside of container but for performance reasons its better to have it outside)
+### 2. Main Installation
 
+Run the main installer to set up basic tools and Python environment:
+```bash
+./.tools/install.sh
+```
 
-### Setup and Usage
+This will:
+- Install Flatpak applications from `flatpaks.txt`
+- Set up Python 3.11 virtual environment
+- Install Python dependencies from `requirements.txt`
 
-1. Create the development container using the provided configuration:
-   ```bash
-   git clone git@github.com:KUKARAF/devpod.git ~/.config/dotfiles && cd ~/.config/dotfiles && stow -t ~ --adopt .
-   distrobox assemble create --file distrobox.ini
-   ```
+### 3. Vim Plugin Setup (Optional)
 
-2. Verify the exported tools:
-   ```bash
-   which vim ag fzf rg zoxide git
-   ```
+Install vim plugins separately:
+```bash
+./.tools/setup_vim_plugins.sh
+```
 
-The container comes with:
-- Vim with pre-configured plugins
-- Development tools and build essentials
-- Node.js (via asdf version manager)
-- UV (fast Python package installer)
-- FZF (fuzzy finder)
-- The Silver Searcher (ag)
+### 4. Distrobox Setup (Optional)
 
-easy install addins: 
-- llm (
-  ```sh
-  uv tool install llm --with llm-anthropic --with llm-openrouter --with llm-groq --with pip-system-certs --with ijson
-  # pip-system-certs needed to make sure ssl imported from system (see https://github.com/KUKARAF/certificatinator for explenation)
-  ```
-- Aider
-  ```sh
-  uv tool install aider-chat --with pip-system-certs 
-  # pip-system-certs needed to make sure ssl imported from system (see https://github.com/KUKARAF/certificatinator for explenation)
-  ```
+To use with distrobox:
+```bash
+# Clone and stow dotfiles
+git clone git@github.com:KUKARAF/devpod.git ~/.config/dotfiles && cd ~/.config/dotfiles && stow -t ~ --adopt .
 
-### Features
-- Seamless integration with host system
-- Persistent home directory
-- Access to host system's display and audio
-- Shared SSH keys and config
+# Create development container
+distrobox create --image ghcr.io/kukaraf/devpod:latest --name devpod
+
+# Enter the container
+distrobox enter devpod
+```
+
+## Available Tools
+
+### Helper Scripts (`.tools/`)
+- `install.sh` - Main installation script
+- `setup_vim_plugins.sh` - Vim plugin manager
+- `silverblue_prerequisites_install.sh` - Silverblue prerequisites
+- `adopt.sh` - Adopt existing configurations
+- `start_syncthing.sh` - Syncthing startup helper
+
+### Installed Components
+- **Python**: Virtual environment with timefhuman, requests, pyyaml, playwright
+- **Flatpaks**: KeePassXC, Wattage, DistroShelf, Nucleus, Whis, Obsidian, Gearlever, Grayjay, Webapps
+- **Vim Plugins**: fugitive, jedi-vim, fzf.vim, commentary, vimwiki, yazi.vim
+
+### Configuration Files
+- `.bashrc`, `.vimrc`, `.zellijrc` - Shell and editor configurations
+- `.config/` - Application-specific configurations (alacritty, starship, zellij, mise)
+- `.runprompt/` - Custom prompt configurations and LLM automation tools
+
+### Runprompt LLM Automations
+
+The `.runprompt/` directory contains specialized LLM-powered automation tools that combine models with task-specific prompts:
+
+**Available Prompts:**
+- `bash.prompt` - Bash scripting assistant
+- `create_download_sh.prompt` - Download script generator
+- `estimate_today.prompt` - Daily task estimator
+- `find.prompt` - File finding assistant
+- `find_resources.prompt` - Resource discovery tool
+- `improve_specs.prompt` - Specification improvement assistant
+- `keyboard_query.prompt` - Keyboard shortcut lookup
+- `new_project.prompt` - Project scaffolding with pomodoro integration
+- `new_skill.prompt` - Skill learning assistant
+- `resources.prompt` - Resource recommendation tool
+
+**Python Tools:**
+- `ask.py` - User interaction utilities
+- `bash_help.py` - Bash help functions
+- `download_tools.py` - Download utilities
+- `find.py` - Enhanced file search
+- `jina.py` - Jina AI integration
+- `new_skill.py` - Skill learning tools
+- `project_tools.py` - Project setup utilities
+- `searxng_search.py` - Search engine integration
+- `todo.py` - Task management
+
+These tools enable automated workflows like:
+- Project creation with git initialization and template setup
+- Pomodoro timer integration for focused work sessions
+- Task-specific LLM assistance with pre-configured models
+- Resource discovery and recommendation systems
+
+## Features
+
+- **Modular Setup**: Install components separately as needed
+- **Container Support**: Works with distrobox for isolated environments
+- **Dotfile Management**: Uses GNU Stow for clean symlink management
+- **Python Environment**: Pre-configured virtual environment with essential packages
+
+## Usage Notes
+
+- Vim plugins are managed separately for easier updates
+- The distrobox image includes development tools and build essentials
+- Python environment uses UV for fast package installation
+- Flatpak applications provide GUI tools and utilities
+
+## License
+
+MIT License - see the repository for details.
