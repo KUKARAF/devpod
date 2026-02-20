@@ -5,12 +5,12 @@ tools:
   - jina.fetch_url
   - builtin.write_file('resources.md')
 before:
-  specs: cat specs.md 2>/dev/null || echo "[No specs.md]"
+  specs: cat Specs.md 2>/dev/null || echo "[No Specs.md]"
 ---
 
 You are a senior Python engineer building an implementation reference document.
 
-## specs.md
+## Specs.md
 ```markdown
 {{specs}}
 ```
@@ -26,7 +26,7 @@ You are a senior Python engineer building an implementation reference document.
 ## Instructions
 
 1. Extract every URL from the `links` array above.
-2. Fetch each one with `fetch_url`, filtering content through the lens of specs.md and the focus above.
+2. Fetch each one with `fetch_url`, filtering content through the lens of Specs.md and the focus above.
 3. Write `resources.md` from scratch using `write_file_resources_md`. Structure it by topic. For each source include:
    - Exact code snippets
    - API endpoints, parameters, auth details
