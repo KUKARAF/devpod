@@ -1,7 +1,7 @@
 .venv
 .stow-local-ignore
 .tools
-vim
+vim/*
 flatpaks.txt
 features.todo.md
 README.md
