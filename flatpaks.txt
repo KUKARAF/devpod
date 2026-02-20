@@ -1,0 +1,5 @@
+org.keepassxc.KeePassXC
+io.github.v81d.Wattage
+com.ranfdev.DistroShelf
+page.codeberg.lo_vely.Nucleus
+ink.whis.Whis
