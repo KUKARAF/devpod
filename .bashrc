@@ -25,3 +25,4 @@ if [ -d ~/.bashrc.d ]; then
 fi
 unset rc
 export EDITOR="vim"
+PATH="$HOME/.runprompt/prompts:$PATH"
