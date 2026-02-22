@@ -7,3 +7,4 @@ md.obsidian.Obsidian
 it.mijorus.gearlever
 app.grayjay.Grayjay
 net.codelogistics.webapps
+com.rioterm.Rio
