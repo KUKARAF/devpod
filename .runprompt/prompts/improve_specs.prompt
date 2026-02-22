@@ -5,9 +5,9 @@ model: openrouter/openai/gpt-oss-120b
 
 tools:
   - builtin.ask_user
-  - builtin.write_file('Specs.md')
+  - builtin.write_file('specs.md')
 before:
-  existing_specs: cat Specs.md 2>/dev/null || echo "[No Specs.md found]"
+  existing_specs: cat specs.md 2>/dev/null || echo "[No specs.md found]"
   project_name: basename $(git rev-parse --show-toplevel)
   git_log: git log --oneline -10 2>/dev/null || echo "[No commits yet]"
   git_status: git status --short
@@ -22,7 +22,7 @@ before:
   dockerfiles: ls Dockerfile* docker-compose* 2>/dev/null || echo "[No Docker files]"
 ---
 
-You are a senior Python engineer helping establish or improve a project's `Specs.md` — the single source of truth for a project's goals, architecture, stack, and decisions. This file is written at project inception and updated as key decisions are made.
+You are a senior Python engineer helping establish or improve a project's `specs.md` — the single source of truth for a project's goals, architecture, stack, and decisions. This file is written at project inception and updated as key decisions are made.
 
 ## Project Context
 
@@ -30,7 +30,7 @@ You are a senior Python engineer helping establish or improve a project's `Specs
 
 **Python version:** {{python_version}}
 
-**Existing Specs.md:**
+**Existing specs.md:**
 ```
 {{existing_specs}}
 ```
@@ -88,7 +88,7 @@ You are a senior Python engineer helping establish or improve a project's `Specs
 
 ## Your task
 
-Analyze all the context above and produce a high-quality `Specs.md` for this Python project. If a Specs.md already exists, improve and expand it — don't throw away valid content.
+Analyze all the context above and produce a high-quality `specs.md` for this Python project. If a specs.md already exists, improve and expand it — don't throw away valid content.
 
 ### Rules
 
@@ -99,7 +99,7 @@ Analyze all the context above and produce a high-quality `Specs.md` for this Pyt
 
 ---
 
-### Specs.md structure to follow
+### specs.md structure to follow
 
 ```
 # {Project Name}
@@ -194,5 +194,5 @@ Numbered list of unresolved decisions.
 
 1. Think through what you know and what's missing.
 2. Use `ask_user` to ask **one focused question** if there's a truly critical unknown you can't infer (e.g. deployment target, auth requirements). Otherwise infer and mark as TBD.
-3. Write the complete `Specs.md` using `write_file_Specs_md`. Make it complete and useful — don't truncate.
-4. After writing, tell the user: "Specs.md has been written. Run `git diff Specs.md` to review the changes. Commit when satisfied."
+3. Write the complete `specs.md` using `write_file_specs_md`. Make it complete and useful — don't truncate.
+4. After writing, tell the user: "specs.md has been written. Run `git diff specs.md` to review the changes. Commit when satisfied."

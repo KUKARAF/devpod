@@ -34,3 +34,4 @@ You are a senior Python engineer building an implementation reference document.
    - Low-level details a developer needs during implementation
 
 No fluff. Skip links that have nothing relevant. Note failed fetches briefly and move on.
+Make sure to always end the resource by creating the resources.md file so we have everything we need to start development

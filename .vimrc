@@ -15,12 +15,6 @@ if !executable('vibe')
     echohl None
 endif
 
-if !executable('llm') && !executable('ask')
-    echohl WarningMsg
-    echo "Warning: Neither 'llm' nor 'ask' command found. The Ask command will not work."
-    echohl None
-endif
-
 " Create autocmd group for terminal handling
 augroup terminal_handling
     autocmd!
@@ -45,29 +39,6 @@ nnoremap <leader>r :e!<CR>
 nnoremap <leader><leader> :e!<CR>
 "  nnoremap <silent> <leader>h :bprevious<CR>
 "  nnoremap <silent> <leader>l :bnext<CR>
-function! AskQuestion(question)
-    " Get the current buffer content
-    let buffer_content = join(getline(1, '$'), "\n")
-
-    " Create a temporary file to store the buffer content
-    let temp_file = tempname()
-    call writefile(split(buffer_content, "\n"), temp_file)
-
-    " Determine which command to use
-    let cmd = executable('llm') ? 'llm' : 'ask'
-    
-    " Run the command with the buffer content and question
-    let command = cmd . " -s '" . a:question . "' < " . temp_file
-    let output = system(command)
-
-    " Open a new tab and display the output
-    tabnew
-    put =output
-
-    " Delete the temporary file
-    call delete(temp_file)
-endfunction
-
 function! VibeCommand(...)
     " Run the 'vibe' command without additional flags
     let cmd = 'vibe'
@@ -75,7 +46,6 @@ function! VibeCommand(...)
     " Switch to terminal mode
     startinsert
 endfunction
-
 
 function! ExecuteVisualSelection()
     " Get the visually selected text
@@ -95,32 +65,6 @@ function! ExecuteVisualSelection()
     
     " Execute the command and get output
     let output = system(expanded_text)
-    " Remove trailing newline if present
-    let output = substitute(output, '\n$', '', '')
-    
-    " Replace the selected text with the output
-    execute line_start . ',' . line_end . 'delete'
-    call append(line_start - 1, split(output, "\n"))
-endfunction
-
-function! QueryVisualSelection()
-    " Get the visually selected text
-    let [line_start, column_start] = getpos("'<")[1:2]
-    let [line_end, column_end] = getpos("'>")[1:2]
-    let lines = getline(line_start, line_end)
-    if len(lines) == 0
-        return
-    endif
-    " Handle partial line selections
-    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
-    let lines[0] = lines[0][column_start - 1:]
-    let selected_text = join(lines, "\n")
-    
-    " Determine which command to use
-    let cmd = executable('llm') ? 'llm' : 'ask'
-    
-    " Send to LLM and get response
-    let output = system('echo ' . shellescape(selected_text) . ' | ' . cmd)
     " Remove trailing newline if present
     let output = substitute(output, '\n$', '', '')
     
@@ -152,11 +96,9 @@ function! ExecutePythonSelection()
 endfunction
 
 command! -nargs=? Vibe call VibeCommand(<f-args>)
-command! -nargs=1 LLM call AskQuestion(<q-args>)
 
 " Visual mode mappings
 vnoremap <leader>e :<C-u>call ExecuteVisualSelection()<CR>
-vnoremap <leader>q :<C-u>call QueryVisualSelection()<CR>
 vnoremap <leader>p :<C-u>call ExecutePythonSelection()<CR>
 nnoremap <silent> <C-v> :vsplit \| :Yazi<cr>
 const g:yazi_exec_on_open = 'tabnew'      " default 'edit'
