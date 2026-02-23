@@ -11,7 +11,13 @@ alias gp="git push"
 # Navigation
 alias ..="cd .."
 alias ...="cd ../.."
-alias ll="ls -lah --color=auto"
+alias ll="eza -lah --icons --git"
+alias ls="eza --icons"
+alias tree="eza --tree --icons"
+
+# Better defaults
+alias cat="bat --paging=never"
+alias diff="delta"
 
 # Safety
 alias rm="rm -i"
