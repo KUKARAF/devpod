@@ -7,3 +7,6 @@ features.todo.md
 README.md
 requirements.txt
 0xProtoNerdFont-Regular.ttf
+Dockerfile
+fonts
+shell.nix
