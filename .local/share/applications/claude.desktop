@@ -1,0 +1,11 @@
+[Desktop Entry]
+Categories=Office;Utility
+Exec=toolbox run -c nix-toolbox-42 claude-desktop %u
+GenericName=Claude Desktop
+Icon=claude
+MimeType=x-scheme-handler/claude
+Name=Claude
+StartupWMClass=claude
+Terminal=false
+Type=Application
+Version=1.5
