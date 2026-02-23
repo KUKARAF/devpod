@@ -1,1 +1,19 @@
 alias gr="git rev-parse --show-toplevel"
+
+# Git
+alias gs="git status -sb"
+alias gl="git log --oneline --graph --decorate -20"
+alias gd="git diff"
+alias gco="git checkout"
+alias gc="git commit"
+alias gp="git push"
+
+# Navigation
+alias ..="cd .."
+alias ...="cd ../.."
+alias ll="ls -lah --color=auto"
+
+# Safety
+alias rm="rm -i"
+alias cp="cp -i"
+alias mv="mv -i"

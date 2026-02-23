@@ -14,4 +14,3 @@ eval "$(fzf --bash)"
 PATH="$HOME/.runprompt/prompts:$PATH"
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
-source ~/.zellijrc
