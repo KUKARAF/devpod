@@ -1,28 +1,17 @@
-# Features to Add Later
+# TODO
 
-## Development Tools
-- python3 with development tools:
-  - [ ] black
+## GitHub Actions — needs secrets configured
+- [ ] Create PAT (repo scope) and add as `PAT` secret → needed for flake-update.yml to trigger CI on PRs
+- [ ] Create Cachix personal cache and add `CACHIX_AUTH_TOKEN` + `CACHIX_CACHE_NAME` → needed for nix-vuln.yml
 
-## Vim Configuration
-- Custom vim configuration with plugins auto install as part of stow somehow?:
-  - [ ] vim-lastplace
-  - [ ] vim-fugitive
-  - [ ] vim-commentary
-  - [ ] ctrlp-vim
-  - [ ] fzf-vim
+## Nix / Home Manager
+- [ ] Add vim plugin configuration (vim-lastplace, vim-fugitive, vim-commentary, ctrlp, fzf-vim) via home-manager `programs.vim`
+- [ ] Add posting (HTTP client) — installable via `uvx posting` or add to nix
+- [ ] Manage aider via nix instead of manual binary in `.local/bin/`
+- [ ] Add fzf shell integration (key bindings + completion) to shell config
 
-## Additional Tools
-- [ ] posting via uv
-- [ ] aider via aider
-- [ ] starship binary in bashrc
-- [ ] fzf in bashrc as function?
-- [ ] move starship config file into right place
+## Shell
+- [ ] Add `# shellcheck shell=bash` annotation to `.aliasrc` (required for security.yml to pass cleanly)
 
-## Shell Enhancements
-- [ ] Git aliases (gr, gs, ga, gc, gp)
-- [ ] fzf key bindings and completion
-- [ ] based on nix
-- [ ] all besed on
-    - [ ] e.g. nix-env -iA nixpkgs.vim-full
-- [ ] remove mise dependencies
+## Toolbox
+- [ ] Add claude desktop entry for any additional toolboxes (ubuntu-toolbox, fedora-toolbox) if needed
