@@ -1,0 +1,30 @@
+name: Update flake inputs
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # weekly Monday 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update:
+    name: Update flake.lock
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - uses: DeterminateSystems/update-flake-lock@v24
+        with:
+          path-to-flake-dir: '.config/home-manager'
+          pr-title: 'chore: update flake.lock'
+          pr-labels: |
+            dependencies
+            automated
+          token: ${{ secrets.PAT }}
