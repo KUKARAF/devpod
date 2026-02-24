@@ -1,11 +1,9 @@
-org.keepassxc.KeePassXC
 io.github.v81d.Wattage
 com.ranfdev.DistroShelf
-page.codeberg.lo_vely.Nucleus
-ink.whis.Whis
 md.obsidian.Obsidian
 it.mijorus.gearlever
 app.grayjay.Grayjay
 net.codelogistics.webapps
 com.rioterm.Rio
 com.valvesoftware.Steam
+de.haeckerfelix.Shortwave
