@@ -6,8 +6,8 @@
 
 ## Nix / Home Manager
 - [ ] Add vim plugin configuration (vim-lastplace, vim-fugitive, vim-commentary, ctrlp, fzf-vim) via home-manager `programs.vim`
-- [ ] Add posting (HTTP client) — installable via `uvx posting` or add to nix
-- [ ] Manage aider via nix instead of manual binary in `.local/bin/`
+- [x] Add posting (HTTP client) — installable via `uvx posting` or add to nix
+- [x] Manage aider via nix instead of manual binary in `.local/bin/`
 - [ ] Add fzf shell integration (key bindings + completion) to shell config
 
 ## Shell
@@ -15,3 +15,6 @@
 
 ## Toolbox
 - [ ] Add claude desktop entry for any additional toolboxes (ubuntu-toolbox, fedora-toolbox) if needed
+
+## Ideas
+- [ ] Extract uvx tool wrappers from `home.nix` into a separate `uvx-tools.nix` module once the list grows large enough (10+ tools)
