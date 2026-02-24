@@ -11,13 +11,13 @@ alias gp="git push"
 # Navigation
 alias ..="cd .."
 alias ...="cd ../.."
-alias ll="eza -lah --icons --git"
-alias ls="eza --icons"
-alias tree="eza --tree --icons"
 
-# Better defaults
-alias cat="bat --paging=never"
-alias diff="delta"
+# Enhanced tools (only when available via nix)
+command -v eza   &>/dev/null && alias ll="eza -lah --icons --git"
+command -v eza   &>/dev/null && alias ls="eza --icons"
+command -v eza   &>/dev/null && alias tree="eza --tree --icons"
+command -v bat   &>/dev/null && alias cat="bat --paging=never"
+command -v delta &>/dev/null && alias diff="delta"
 
 # Safety
 alias rm="rm -i"
