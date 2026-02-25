@@ -1,0 +1,42 @@
+#!/usr/bin/env runprompt
+---
+model: openrouter/openai/gpt-oss-120b
+tools:
+  - calendar.get_tomorrow_events
+  - todo.get_todos
+  - todo.calculate
+  - ask.ask
+---
+
+Start by fetching tomorrow's calendar events and the todo file.
+
+Your job is to read both and produce a realistic schedule for tomorrow:
+
+1. Calendar events are fixed — treat them as immovable blocks.
+2. For each unfinished todo, provide a time estimate. Feel free to split tasks into subtasks for better accuracy (subtasks should be indented). The sum of all subtasks should be rounded up to the complete hour and added to the main task like estimate:1h
+3. Schedule work in 1h pomodoro sessions squeezed between calendar events, each followed by a 10 minute break. If a gap between events is too short for a full pomodoro use that for stuff like grocerie shopping or going out with the dog.
+4. If tasks are not clear enough (and only then!) ask clarifying questions one task at a time.
+5. if some time is left, especially later at night plan in a long bath or a gaming session to relax
+
+expected output:
+
+# todo
+- [m] send email
+- [ ] create website start:10:30 p:3
+	- [ ] frontend p:1
+	- [ ] backend p:1 #fb
+	- [ ] integration tests p:1
+- [ ] clean p:1
+- [ ] send taxtes
+
+# Events 
+10:30 work on website
+14:00 go to market + go out wiht kika
+15:00 lunch 
+16:00 relaxing bath or gaming
+20:00 datenight
+
+
+m means marinating so email sent and we are waiting for a reply
+p means pomodoros and equals 1h
+fb means front burner important tasks that need to be done first
