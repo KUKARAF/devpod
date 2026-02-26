@@ -10,3 +10,4 @@ de.haeckerfelix.Shortwave
 com.mattjakeman.ExtensionManager
 io.mpv.Mpv
 flathub com.github.xournalpp.xournalpp
+org.localsend.localsend_app
