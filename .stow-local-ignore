@@ -1,4 +1,5 @@
 .git
+.git/*
 .venv
 .stow-local-ignore
 .tools
