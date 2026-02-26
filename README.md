@@ -36,14 +36,7 @@ This will:
 - Set up Python 3.11 virtual environment
 - Install Python dependencies from `requirements.txt`
 
-### 3. Vim Plugin Setup (Optional)
-
-Install vim plugins separately:
-```bash
-./.tools/setup_vim_plugins.sh
-```
-
-### 4. Distrobox Setup (Optional)
+### 3. Distrobox Setup (Optional)
 
 To use with distrobox:
 ```bash
@@ -61,7 +54,6 @@ distrobox enter devpod
 
 ### Helper Scripts (`.tools/`)
 - `install.sh` - Main installation script
-- `setup_vim_plugins.sh` - Vim plugin manager
 - `silverblue_prerequisites_install.sh` - Silverblue prerequisites
 - `adopt.sh` - Adopt existing configurations
 - `start_syncthing.sh` - Syncthing startup helper
@@ -69,10 +61,10 @@ distrobox enter devpod
 ### Installed Components
 - **Python**: Virtual environment with timefhuman, requests, pyyaml, playwright
 - **Flatpaks**: KeePassXC, Wattage, DistroShelf, Nucleus, Whis, Obsidian, Gearlever, Grayjay, Webapps
-- **Vim Plugins**: fugitive, jedi-vim, fzf.vim, commentary, vimwiki, yazi.vim
+- **Vim Plugins** (managed via Home Manager): fugitive, fzf.vim, commentary, ctrlp, lastplace, vimwiki, yazi.vim, ack.vim
 
 ### Configuration Files
-- `.bashrc`, `.vimrc`, `.zellijrc` - Shell and editor configurations
+- `.bashrc`, `.zellijrc` - Shell configurations
 - `.config/` - Application-specific configurations (alacritty, starship, zellij, mise)
 - `.runprompt/` - Custom prompt configurations and LLM automation tools
 
@@ -118,7 +110,7 @@ These tools enable automated workflows like:
 
 ## Usage Notes
 
-- Vim plugins are managed separately for easier updates
+- Vim configuration and plugins are fully managed by Home Manager (`programs.vim` in `home.nix`)
 - The distrobox image includes development tools and build essentials
 - Python environment uses UV for fast package installation
 - Flatpak applications provide GUI tools and utilities

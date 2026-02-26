@@ -3,6 +3,7 @@
 .stow-local-ignore
 .tools
 vim/*
+*.md
 flatpaks.txt
 features.todo.md
 README.md
@@ -11,3 +12,5 @@ requirements.txt
 Dockerfile
 fonts
 shell.nix
+.vimrc
+backup_data
