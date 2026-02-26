@@ -7,3 +7,5 @@ net.codelogistics.webapps
 com.rioterm.Rio
 com.valvesoftware.Steam
 de.haeckerfelix.Shortwave
+com.mattjakeman.ExtensionManager
+io.mpv.Mpv
