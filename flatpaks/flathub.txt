@@ -9,3 +9,4 @@ com.valvesoftware.Steam
 de.haeckerfelix.Shortwave
 com.mattjakeman.ExtensionManager
 io.mpv.Mpv
+flathub com.github.xournalpp.xournalpp
