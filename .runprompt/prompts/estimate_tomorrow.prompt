@@ -1,6 +1,6 @@
 #!/usr/bin/env runprompt
 ---
-model: openrouter/openai/gpt-oss-120b
+model: openrouter/deepseek/deepseek-v3.2
 tools:
   - calendar.get_tomorrow_events
   - todo.get_todos

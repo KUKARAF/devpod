@@ -1,6 +1,6 @@
 #!/usr/bin/env runprompt
 ---
-model: openrouter/openai/gpt-oss-120b
+model: openrouter/deepseek/deepseek-v3.2
 tools:
   - bash_help.tldr
 ---
