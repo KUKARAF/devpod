@@ -42,8 +42,6 @@ unset rc
 export EDITOR="vim"
 
 # Auto-start Zellij
-if [[ -z "$ZELLIJ" ]] && command -v zellij &>/dev/null; then
-    exec zellij attach -c
-elif [[ -n "$ZELLIJ" ]]; then
-    [ -f ~/.zellijrc ] && . ~/.zellijrc
-fi
+# if [[ -z "$ZELLIJ" ]] && command -v zellij &>/dev/null; then
+#     exec zellij attach -c
+# fi
