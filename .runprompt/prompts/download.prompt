@@ -1,0 +1,18 @@
+#!/usr/bin/env runprompt
+---
+model: openrouter/deepseek/deepseek-v3.2
+tools:
+  - real_debrid.get_links
+  - real_debrid.append_download_link
+files:
+  - CONVENTIONS.md
+---
+Fetch the Real-Debrid downloads list using get_links.
+
+{{#if INPUT}}
+Only process links that belong to the series: "{{INPUT}}". Skip everything else.
+{{else}}
+Process all links.
+{{/if}}
+
+For each relevant download link, determine the series name and season, then call append_download_link for each one. The tool will handle creating folders and the download.sh file automatically.
