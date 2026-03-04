@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import sys
+
 default = ""
 
 def ask(question):
@@ -15,8 +17,9 @@ def ask(question):
     str
         The user's answer, stripped of whitespace.
     """
-    prompt = f"{question}: "
-    answer = input(prompt).strip()
+    # Print the full question to stderr so it's visible even when stdout is captured
+    print(f"\n{question}", file=sys.stderr)
+    answer = input("> ").strip()
     return answer if answer else default
 
 ask.safe = True

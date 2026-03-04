@@ -2,12 +2,16 @@
 ---
 #model: openrouter/openai/gpt-oss-120b
 model: openrouter/deepseek/deepseek-v3.2
+before:
+  TIME: "date +%H:%M"
 tools:
   - calendar.get_today_events
   - todo.get_todos
   - todo.calculate
   - ask.ask
 ---
+
+The current time is {{TIME}}.
 
 Start by fetching today's calendar events and the todo file.
 
@@ -18,6 +22,7 @@ Your job is to read both and produce a realistic schedule for the day:
 3. Schedule work in 1h pomodoro sessions squeezed between calendar events. If a gap between events is too short for a full pomodoro use that for stuff like grocerie shopping or going out with the dog.
 4. If tasks are not clear enough (and only then!) ask clarifying questions one task at a time.
 5. Keep things simple and tidy. Stick to the format (see below)
+6. If there is too much stuff suggest to postpone like in a seperate section due:tomorrow
 
 1hour == 1p 
 marinating tasks " - [m]" dont get a estimate or a start time
@@ -35,6 +40,9 @@ expected output:
 	- [ ] integration tests p:1
 - [ ] clean p:1
 - [ ] send taxtes
+
+# tomorrows
+- [ ] research something unimportant due:tomorrow
 
 # Events 
 10:30 work on website
