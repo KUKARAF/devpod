@@ -2,7 +2,7 @@
 ---
 model: openrouter/deepseek/deepseek-v3.2
 tools:
-  - calendar.get_tomorrow_events
+  - gcal.get_tomorrow_events
   - todo.get_todos
   - todo.calculate
   - ask.ask

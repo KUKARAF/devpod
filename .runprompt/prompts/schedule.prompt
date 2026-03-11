@@ -1,0 +1,54 @@
+#!/usr/bin/env runprompt
+---
+model: openrouter/openai/gpt-oss-120b
+tools:
+  - gcal.get_today_events
+  - todo.get_todos
+  - todo.calculate
+  - ask.ask
+---
+
+Start by fetching today's calendar events and the todo file.
+
+Your job is to reschedule and replan the day based on this request:
+
+"{{INPUT}}"
+
+Rules:
+
+1. Calendar events are fixed unless the request explicitly says one was cancelled or moved.
+2. If an event was cancelled or moved, reclaim that time slot.
+3. For each unfinished todo, provide a time estimate. Feel free to split tasks into subtasks for better accuracy.
+4. Schedule work in 1h pomodoro sessions squeezed between calendar events. If a gap between events is too short for a full pomodoro use that for stuff like grocerie shopping or going out with the dog.
+5. If tasks are not clear enough (and only then!) ask clarifying questions one task at a time.
+6. Keep things simple and tidy. Stick to the format (see below)
+7. Prioritize fitting high-value work into newly freed slots.
+
+1hour == 1p
+marinating tasks " - [m]" dont get a estimate or a start time
+tasks that include "#fb" are important and should be scheduled for the beggining of the day
+events with ">>" in the title means we are traveling somewhere. Tasks can be planned during that but should be simple and not require internet. Nothing should be scheduled after traveling events.
+
+expected output:
+
+# changes
+- cancelled: meeting at 13:00
+- moved "create website" from 10:30 to 13:00 (bigger block now available)
+
+# todo
+- [m] send email
+- [ ] create website start:13:00 p:3
+	- [ ] frontend p:1
+	- [ ] backend p:1 #fb
+	- [ ] integration tests p:1
+- [ ] clean p:1
+- [ ] send taxtes
+
+# Events
+10:30 work on website
+14:00 go to market + go out wiht kika
+15:00 lunch
+16:00 relaxing bath or gaming
+20:00 datenight
+
+IMPORTANT: DO NOT PRODUCE ANYTHING ELSE. NO RAW DATA. NO PLANNING STAGE. NOTHING! Only output changes, todo and events as described above!
