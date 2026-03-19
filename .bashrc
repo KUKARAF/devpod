@@ -40,6 +40,7 @@ unset rc
 [ -f ~/.aliasrc ] && . ~/.aliasrc
 
 export EDITOR="vim"
+export TERM="xterm-256color"
 
 # Auto-start Zellij
 # if [[ -z "$ZELLIJ" ]] && command -v zellij &>/dev/null; then
