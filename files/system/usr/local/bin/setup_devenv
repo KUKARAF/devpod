@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Run this on the host to bootstrap the nix-toolbox dev environment.
+# Usage: setup_devenv
+set -euo pipefail
+
+TOOLBOX_NAME="nix-toolbox-42"
+TOOLBOX_IMAGE="ghcr.io/thrix/nix-toolbox:42"
+DOTFILES_REPO="https://github.com/KUKARAF/devpod.git"
+DOTFILES_DIR="$HOME/.config/dotfiles"
+
+echo "==> Creating toolbox '$TOOLBOX_NAME'..."
+if ! toolbox list --containers | grep -q "$TOOLBOX_NAME"; then
+    toolbox create --image "$TOOLBOX_IMAGE" "$TOOLBOX_NAME"
+else
+    echo "    Toolbox '$TOOLBOX_NAME' already exists, skipping."
+fi
+
+echo "==> Cloning dotfiles..."
+if [ ! -d "$DOTFILES_DIR" ]; then
+    git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
+else
+    echo "    Dotfiles already present at $DOTFILES_DIR, pulling latest."
+    git -C "$DOTFILES_DIR" pull --ff-only || true
+fi
+
+echo "==> Running nix-toolbox setup inside '$TOOLBOX_NAME'..."
+toolbox run --container "$TOOLBOX_NAME" bash "$DOTFILES_DIR/.tools/nix-toolbox-setup.sh"
+
+echo "==> Done! Enter your toolbox with: toolbox enter $TOOLBOX_NAME"
