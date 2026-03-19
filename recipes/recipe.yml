@@ -16,10 +16,6 @@ modules:
         destination: /
 
   - type: dnf
-    install:
-      packages:
-        - vim
-        - starship
     remove:
       packages:
         - firefox
