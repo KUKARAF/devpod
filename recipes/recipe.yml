@@ -15,12 +15,6 @@ modules:
       - source: system
         destination: /
 
-  - type: dnf
-    remove:
-      packages:
-        - firefox
-        - firefox-langpacks
-
   - type: gschema-overrides
     include:
       - zz1-defaults.gschema.override
@@ -28,13 +22,5 @@ modules:
   - type: bling
     install:
       - dconf-update-service
-
-  - type: default-flatpaks
-    configurations:
-      - notify: true
-        scope: system
-        install:
-          - org.mozilla.firefox
-      - scope: user
 
   - type: signing
