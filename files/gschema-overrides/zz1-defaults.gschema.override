@@ -1,0 +1,8 @@
+[org.gnome.desktop.interface]
+color-scheme='prefer-dark'
+
+[org.gnome.desktop.input-sources]
+xkb-options=['compose:caps']
+
+[org.gnome.desktop.wm.keybindings]
+close=['<Super>w']
