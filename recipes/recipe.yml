@@ -15,12 +15,6 @@ modules:
       - source: system
         destination: /
 
-  - type: dnf
-    remove:
-      packages:
-        - firefox
-        - firefox-langpacks
-
   - type: gschema-overrides
     include:
       - zz1-defaults.gschema.override
