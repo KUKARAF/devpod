@@ -1,0 +1,10 @@
+[Unit]
+Description=Restart Lan Mouse after resume from sleep
+After=suspend.target sleep.target hibernate.target hybrid-sleep.target
+
+[Service]
+Type=oneshot
+ExecStart=systemctl --user restart lan-mouse.service
+
+[Install]
+WantedBy=suspend.target sleep.target hibernate.target hybrid-sleep.target

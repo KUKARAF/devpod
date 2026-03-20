@@ -1,0 +1,11 @@
+[Unit]
+Description=Lan Mouse
+After=graphical-session.target
+BindsTo=graphical-session.target
+
+[Service]
+ExecStart=/var/home/rafa/.local/bin/lan-mouse -d
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

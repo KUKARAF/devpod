@@ -1,9 +1,34 @@
 .aider*
-logs.db
 .env
+logs.db
 keys.json
 openrouter_models.json
 __pycache__
 .config/lan-mouse/lan-mouse.pem
-.aider*
-.env
+
+# Zellij backup files
+.config/zellij/config.kdl.bak*
+
+# uv-managed tool symlinks (home-manager handles these)
+.local/bin/aider
+.local/bin/asciinema
+.local/bin/claude
+.local/bin/diary
+.local/bin/distracted
+.local/bin/kv_manager
+.local/bin/podman-compose
+.local/bin/pomodoro
+.local/bin/posting
+.local/bin/pre-commit
+.local/bin/runprompt
+.local/bin/todo
+.local/bin/uv
+.local/bin/uvx
+.local/bin/vibe
+.local/bin/vibe-acp
+
+# Backup data
+backup_data/
+
+# Session-specific
+.tools/resume_claude.sh

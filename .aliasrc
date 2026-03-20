@@ -23,3 +23,6 @@ command -v delta &>/dev/null && alias diff="delta"
 alias rm="rm -i"
 alias cp="cp -i"
 alias mv="mv -i"
+
+# work
+alias zj='zellij attach "$(basename $(dirname $PWD))-$(basename $PWD)" 2>/dev/null || zellij --session "$(basename $(dirname $PWD))-$(basename $PWD)"'
