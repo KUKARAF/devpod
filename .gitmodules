@@ -1,3 +1,0 @@
-[submodule ".config/home-manager"]
-	path = .config/home-manager
-	url = git@github.com:KUKARAF/home-manager.git
