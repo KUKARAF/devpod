@@ -58,4 +58,9 @@ modules:
       - flathub:de.haeckerfelix.Fragments
       - fedora:org.keepassxc.KeePassXC
 
+  - type: script
+    no-cache: true
+    scripts:
+      - .tools/install-uv-tools.sh
+
   - type: signing
