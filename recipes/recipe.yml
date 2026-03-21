@@ -71,6 +71,6 @@ modules:
   - type: script
     no-cache: true
     scripts:
-      - .tools/install-uv-tools.sh
+      - install-uv-tools.sh
 
   - type: signing
