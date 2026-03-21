@@ -23,4 +23,8 @@ modules:
     install:
       - dconf-update-service
 
+  - type: containerfile
+    snippets:
+      - "LABEL ostree.bootable=true"
+
   - type: signing
