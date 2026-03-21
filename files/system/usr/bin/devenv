@@ -26,4 +26,7 @@ fi
 echo "==> Running nix-toolbox setup inside '$TOOLBOX_NAME'..."
 toolbox run --container "$TOOLBOX_NAME" bash "$DOTFILES_DIR/.tools/nix-toolbox-setup.sh"
 
+echo "==> Installing uv tools..."
+bash "$DOTFILES_DIR/.tools/install-uv-tools.sh"
+
 echo "==> Done! Run 'devenv' again to enter the toolbox."

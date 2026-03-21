@@ -39,9 +39,7 @@ modules:
       - syncthing
       - fzf
       - steam-devices
-      - gcc
-      - gcc-c++
-      - python3-devel
+      - uv
 
   - type: default-flatpaks
     configurations:
@@ -70,10 +68,5 @@ modules:
           name: fedora
         install:
           - org.keepassxc.KeePassXC
-
-  - type: script
-    no-cache: true
-    scripts:
-      - install-uv-tools.sh
 
   - type: signing
