@@ -26,4 +26,18 @@ modules:
     install:
       - dconf-update-service
 
+  - type: rpm-ostree
+    repos:
+      - https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+      - https://cli.github.com/packages/rpm/gh-cli.repo
+    install:
+      - tailscale
+      - gh
+      - stow
+      - btop
+      - distrobox
+      - syncthing
+      - fzf
+      - steam-devices
+
   - type: signing
