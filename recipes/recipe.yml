@@ -40,23 +40,33 @@ modules:
       - fzf
       - steam-devices
 
-  - type: flatpak
-    install:
-      - flathub:io.github.v81d.Wattage
-      - flathub:com.ranfdev.DistroShelf
-      - flathub:md.obsidian.Obsidian
-      - flathub:it.mijorus.gearlever
-      - flathub:app.grayjay.Grayjay
-      - flathub:net.codelogistics.webapps
-      - flathub:com.rioterm.Rio
-      - flathub:com.valvesoftware.Steam
-      - flathub:de.haeckerfelix.Shortwave
-      - flathub:com.mattjakeman.ExtensionManager
-      - flathub:io.mpv.Mpv
-      - flathub:com.github.xournalpp.xournalpp
-      - flathub:org.localsend.localsend_app
-      - flathub:de.haeckerfelix.Fragments
-      - fedora:org.keepassxc.KeePassXC
+  - type: default-flatpaks
+    configurations:
+      - scope: system
+        repo:
+          url: https://dl.flathub.org/repo/flathub.flatpakrepo
+          name: flathub
+        install:
+          - io.github.v81d.Wattage
+          - com.ranfdev.DistroShelf
+          - md.obsidian.Obsidian
+          - it.mijorus.gearlever
+          - app.grayjay.Grayjay
+          - net.codelogistics.webapps
+          - com.rioterm.Rio
+          - com.valvesoftware.Steam
+          - de.haeckerfelix.Shortwave
+          - com.mattjakeman.ExtensionManager
+          - io.mpv.Mpv
+          - com.github.xournalpp.xournalpp
+          - org.localsend.localsend_app
+          - de.haeckerfelix.Fragments
+      - scope: system
+        repo:
+          url: https://registry.fedoraproject.org
+          name: fedora
+        install:
+          - org.keepassxc.KeePassXC
 
   - type: script
     no-cache: true
