@@ -9,8 +9,8 @@ if [ -d /nix ] && command -v home-manager &>/dev/null; then
     home-manager switch
 else
     echo "Standard install — flatpaks + python venv..."
-    xargs -I{} flatpak install -y fedora {} < flatpaks/fedora.txt
-    xargs -I{} flatpak install -y flathub {} < flatpaks/flathub.txt
+    grep -oP '(?<=flathub:)\S+' recipes/recipe.yml | xargs -I{} flatpak install -y flathub {}
+    grep -oP '(?<=fedora:)\S+' recipes/recipe.yml | xargs -I{} flatpak install -y fedora {}
     uv venv -p 3.11
     source .venv/bin/activate
     uv pip install -r requirements.txt
