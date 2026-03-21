@@ -40,6 +40,7 @@ modules:
       - fzf
       - steam-devices
       - gcc
+      - gcc-c++
       - python3-devel
 
   - type: default-flatpaks
