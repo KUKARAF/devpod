@@ -69,4 +69,9 @@ modules:
         install:
           - org.keepassxc.KeePassXC
 
+  - type: script
+    no-cache: true
+    scripts:
+      - install-vim-plugins.sh
+
   - type: signing

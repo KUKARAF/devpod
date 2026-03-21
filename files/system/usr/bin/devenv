@@ -12,16 +12,17 @@ if toolbox list --containers | grep -q "$TOOLBOX_NAME"; then
     exec toolbox enter "$TOOLBOX_NAME"
 fi
 
-echo "==> Creating toolbox '$TOOLBOX_NAME'..."
-toolbox create --image "$TOOLBOX_IMAGE" "$TOOLBOX_NAME"
-
-echo "==> Cloning dotfiles..."
+echo "==> Cloning dotfiles to host..."
 if [ ! -d "$DOTFILES_DIR" ]; then
     git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
 else
-    echo "    Dotfiles already present at $DOTFILES_DIR, pulling latest."
     git -C "$DOTFILES_DIR" pull --ff-only || true
 fi
+echo "==> Stowing dotfiles on host..."
+stow -t ~ --adopt -d "$DOTFILES_DIR" .
+
+echo "==> Creating toolbox '$TOOLBOX_NAME'..."
+toolbox create --image "$TOOLBOX_IMAGE" "$TOOLBOX_NAME"
 
 echo "==> Running nix-toolbox setup inside '$TOOLBOX_NAME'..."
 toolbox run --container "$TOOLBOX_NAME" bash "$DOTFILES_DIR/.tools/nix-toolbox-setup.sh"
