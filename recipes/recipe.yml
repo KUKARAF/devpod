@@ -4,6 +4,9 @@
 name: devpod
 description: Personal Fedora Silverblue image.
 
+labels:
+  ostree.bootable: "true"
+
 # the base image to build on top of (FROM) and the version tag to use
 base-image: ghcr.io/ublue-os/silverblue-main
 image-version: 42
@@ -22,9 +25,5 @@ modules:
   - type: bling
     install:
       - dconf-update-service
-
-  - type: containerfile
-    snippets:
-      - "LABEL ostree.bootable=true"
 
   - type: signing
