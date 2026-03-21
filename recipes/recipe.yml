@@ -39,6 +39,8 @@ modules:
       - syncthing
       - fzf
       - steam-devices
+      - gcc
+      - python3-devel
 
   - type: default-flatpaks
     configurations:
