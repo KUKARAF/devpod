@@ -9,6 +9,6 @@ com.valvesoftware.Steam
 de.haeckerfelix.Shortwave
 com.mattjakeman.ExtensionManager
 io.mpv.Mpv
-flathub com.github.xournalpp.xournalpp
+com.github.xournalpp.xournalpp
 org.localsend.localsend_app
 de.haeckerfelix.Fragments

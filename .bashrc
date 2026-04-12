@@ -46,3 +46,7 @@ export TERM="xterm-256color"
 # if [[ -z "$ZELLIJ" ]] && command -v zellij &>/dev/null; then
 #     exec zellij attach -c
 # fi
+
+# opencode
+export PATH=/var/home/rafa/.opencode/bin:$PATH
+export PATH="$HOME/.npm-global/bin:$PATH"
