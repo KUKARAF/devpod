@@ -26,3 +26,32 @@ alias mv="mv -i"
 
 # work
 alias zj='zellij attach "$(basename $(dirname $PWD))-$(basename $PWD)" 2>/dev/null || zellij --session "$(basename $(dirname $PWD))-$(basename $PWD)"'
+
+# kv secrets — only load if session is still valid
+_kv_load_env() {
+    local keys=(
+        OPENROUTER_API_KEY
+        # add more kv keys here as needed
+    )
+    for key in "${keys[@]}"; do
+        local val
+        val="$(kv get "$key" 2>/dev/null)" && export "$key=$val"
+    done
+}
+
+if command -v kv &>/dev/null && kv session check 2>/dev/null; then
+    _kv_load_env
+fi
+
+load_env() {
+    if ! command -v kv &>/dev/null; then
+        echo "kv: command not found" >&2
+        return 1
+    fi
+    if ! kv session check 2>/dev/null; then
+        echo "kv session expired — renew token first (update ~/.config/kv/config.toml)" >&2
+        return 1
+    fi
+    _kv_load_env
+    echo "env loaded"
+}
