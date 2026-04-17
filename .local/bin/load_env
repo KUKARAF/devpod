@@ -19,47 +19,30 @@ if ! kv session check </dev/null 2>/dev/null; then
     return 1 2>/dev/null || exit 1
 fi
 
-# Helper: returns empty string if key not found, never blocks
-_kv() { kv get "$1" </dev/null 2>/dev/null || true; }
+# Only export if kv returns a non-empty value — variable is left unset otherwise
+_kv_export() {
+    local key="$1" val
+    val="$(kv get "$key" </dev/null 2>/dev/null)" || true
+    [[ -n "$val" ]] && export "$key=$val"
+}
 
-# Anthropic
-export ANTHROPIC_API_KEY="$(_kv ANTHROPIC_API_KEY)"
-
-# OpenAI
-export OPENAI_API_KEY="$(_kv OPENAI_API_KEY)"
-
-# OpenRouter
-export OPENROUTER_API_KEY="$(_kv OPENROUTER_API_KEY)"
-
-# Google Gemini
-export GEMINI_API_KEY="$(_kv GEMINI_API_KEY)"
-
-# Cerebras
-export CEREBRAS_API_KEY="$(_kv CEREBRAS_API_KEY)"
-
-# HuggingFace
-export HF_TOKEN="$(_kv HF_TOKEN)"
-
-# Vertex AI
-export VERTEXAI_PROJECT="$(_kv VERTEXAI_PROJECT)"
-export VERTEXAI_LOCATION="$(_kv VERTEXAI_LOCATION)"
-
-# Groq
-export GROQ_API_KEY="$(_kv GROQ_API_KEY)"
-
-# AWS Bedrock
-export AWS_ACCESS_KEY_ID="$(_kv AWS_ACCESS_KEY_ID)"
-export AWS_SECRET_ACCESS_KEY="$(_kv AWS_SECRET_ACCESS_KEY)"
-export AWS_REGION="$(_kv AWS_REGION)"
-export AWS_PROFILE="$(_kv AWS_PROFILE)"
-export AWS_BEARER_TOKEN_BEDROCK="$(_kv AWS_BEARER_TOKEN_BEDROCK)"
-
-# Azure OpenAI
-export AZURE_OPENAI_API_ENDPOINT="$(_kv AZURE_OPENAI_API_ENDPOINT)"
-export AZURE_OPENAI_API_KEY="$(_kv AZURE_OPENAI_API_KEY)"
-export AZURE_OPENAI_API_VERSION="$(_kv AZURE_OPENAI_API_VERSION)"
-
-# Jina
-export JINA_API_KEY="$(_kv JINA_API_KEY)"
+_kv_export ANTHROPIC_API_KEY
+_kv_export OPENAI_API_KEY
+_kv_export OPENROUTER_API_KEY
+_kv_export GEMINI_API_KEY
+_kv_export CEREBRAS_API_KEY
+_kv_export HF_TOKEN
+_kv_export VERTEXAI_PROJECT
+_kv_export VERTEXAI_LOCATION
+_kv_export GROQ_API_KEY
+_kv_export AWS_ACCESS_KEY_ID
+_kv_export AWS_SECRET_ACCESS_KEY
+_kv_export AWS_REGION
+_kv_export AWS_PROFILE
+_kv_export AWS_BEARER_TOKEN_BEDROCK
+_kv_export AZURE_OPENAI_API_ENDPOINT
+_kv_export AZURE_OPENAI_API_KEY
+_kv_export AZURE_OPENAI_API_VERSION
+_kv_export JINA_API_KEY
 
 echo "env loaded from kv store"
