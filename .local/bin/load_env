@@ -12,13 +12,15 @@ if ! command -v kv &>/dev/null; then
     return 1 2>/dev/null || exit 1
 fi
 
-if ! kv session check 2>/dev/null; then
-    echo "kv session expired — renew token first (update ~/.config/kv/config.toml)" >&2
+# </dev/null ensures kv never blocks waiting for terminal input
+if ! kv session check </dev/null 2>/dev/null; then
+    echo "No valid kv session — skipping loading secrets." >&2
+    echo "Renew with: kv session login" >&2
     return 1 2>/dev/null || exit 1
 fi
 
-# Helper: silently returns empty string if key not found
-_kv() { kv get "$1" 2>/dev/null || true; }
+# Helper: returns empty string if key not found, never blocks
+_kv() { kv get "$1" </dev/null 2>/dev/null || true; }
 
 # Anthropic
 export ANTHROPIC_API_KEY="$(_kv ANTHROPIC_API_KEY)"
