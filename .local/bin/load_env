@@ -1,92 +1,63 @@
 #!/usr/bin/env bash
-# =============================================================================
-#  load-llm-keys.sh
+# Loads API credentials from the kv store and exports them as environment variables.
 #
-#  Reads LLM API credentials from
-#  ~/.config/io.datasette.llm/keys.json
-#  and exports them as environment variables for the various providers.
-#
-#  The script is deliberately simple – most of the variable names are hard‑coded.
-#  If a key is missing in the JSON file the resulting variable will be empty.
-#
-#  Requirements:
-#    • Bash (≥4)
-#    • jq
-# =============================================================================
+# Requirements:
+#   • kv CLI (https://github.com/kukARAF/kv_cli) in PATH
+#   • An active kv session (kv session check)
 
-set -euo pipefail   # safety: exit on error, treat unset vars as error
+set -euo pipefail
 
-# -------------------------------------------------------------------------
-#  Location of the JSON file that holds the secrets.
-# -------------------------------------------------------------------------
-CONFIG_FILE="${HOME}/.config/io.datasette.llm/keys.json"
-
-# -------------------------------------------------------------------------
-#  Guard – make sure the file exists and is readable.
-# -------------------------------------------------------------------------
-if [[ ! -r "${CONFIG_FILE}" ]]; then
-  echo "⚠️  Unable to read config file: ${CONFIG_FILE}" >&2
-  return 1 2>/dev/null || exit 1   # works both when sourced and when executed
+if ! command -v kv &>/dev/null; then
+    echo "kv: command not found — install from https://github.com/kukARAF/kv_cli" >&2
+    return 1 2>/dev/null || exit 1
 fi
 
-# -------------------------------------------------------------------------
-#  Helper: read a key from the JSON file, return empty string if the key
-#          does not exist or is null.
-# -------------------------------------------------------------------------
-json_val() {
-  local key="$1"
-  jq -r --arg k "$key" '.[$k] // empty' "${CONFIG_FILE}"
-}
+if ! kv session check 2>/dev/null; then
+    echo "kv session expired — renew token first (update ~/.config/kv/config.toml)" >&2
+    return 1 2>/dev/null || exit 1
+fi
 
-# -------------------------------------------------------------------------
-#  Export the environment variables.
-#  Only the keys that actually appear in the JSON will get a value;
-#  the rest will be set to the empty string (which is fine for most SDKs).
-# -------------------------------------------------------------------------
+# Helper: silently returns empty string if key not found
+_kv() { kv get "$1" 2>/dev/null || true; }
 
 # Anthropic
-export ANTHROPIC_API_KEY="$(json_val "anthropic")"
+export ANTHROPIC_API_KEY="$(_kv ANTHROPIC_API_KEY)"
 
 # OpenAI
-export OPENAI_API_KEY="$(json_val "openai")"
+export OPENAI_API_KEY="$(_kv OPENAI_API_KEY)"
 
 # OpenRouter
-export OPENROUTER_API_KEY="$(json_val "openrouter")"
+export OPENROUTER_API_KEY="$(_kv OPENROUTER_API_KEY)"
 
 # Google Gemini
-export GEMINI_API_KEY="$(json_val "gemini")"
+export GEMINI_API_KEY="$(_kv GEMINI_API_KEY)"
 
 # Cerebras
-export CEREBRAS_API_KEY="$(json_val "cerebras")"
+export CEREBRAS_API_KEY="$(_kv CEREBRAS_API_KEY)"
 
 # HuggingFace
-export HF_TOKEN="$(json_val "hf_token")"
+export HF_TOKEN="$(_kv HF_TOKEN)"
 
-# Vertex AI (Gemini)
-export VERTEXAI_PROJECT="$(json_val "vertexai_project")"
-export VERTEXAI_LOCATION="$(json_val "vertexai_location")"
+# Vertex AI
+export VERTEXAI_PROJECT="$(_kv VERTEXAI_PROJECT)"
+export VERTEXAI_LOCATION="$(_kv VERTEXAI_LOCATION)"
 
 # Groq
-export GROQ_API_KEY="$(json_val "groq")"
+export GROQ_API_KEY="$(_kv GROQ_API_KEY)"
 
-# AWS Bedrock (Claude)
-export AWS_ACCESS_KEY_ID="$(json_val "aws_access_key_id")"
-export AWS_SECRET_ACCESS_KEY="$(json_val "aws_secret_access_key")"
-export AWS_REGION="$(json_val "aws_region")"
-export AWS_PROFILE="$(json_val "aws_profile")"
-export AWS_BEARER_TOKEN_BEDROCK="$(json_val "aws_bearer_token_bedrock")"
+# AWS Bedrock
+export AWS_ACCESS_KEY_ID="$(_kv AWS_ACCESS_KEY_ID)"
+export AWS_SECRET_ACCESS_KEY="$(_kv AWS_SECRET_ACCESS_KEY)"
+export AWS_REGION="$(_kv AWS_REGION)"
+export AWS_PROFILE="$(_kv AWS_PROFILE)"
+export AWS_BEARER_TOKEN_BEDROCK="$(_kv AWS_BEARER_TOKEN_BEDROCK)"
 
 # Azure OpenAI
-export AZURE_OPENAI_API_ENDPOINT="$(json_val "azure_openai_endpoint")"
-export AZURE_OPENAI_API_KEY="$(json_val "azure_openai_key")"
-export AZURE_OPENAI_API_VERSION="$(json_val "azure_openai_version")"
+export AZURE_OPENAI_API_ENDPOINT="$(_kv AZURE_OPENAI_API_ENDPOINT)"
+export AZURE_OPENAI_API_KEY="$(_kv AZURE_OPENAI_API_KEY)"
+export AZURE_OPENAI_API_VERSION="$(_kv AZURE_OPENAI_API_VERSION)"
 
-# -------------------------------------------------------------------------
-#  Optional: print a short summary (comment out if you don’t want any output)
-# -------------------------------------------------------------------------
-echo "✅ LLM credentials loaded from ${CONFIG_FILE}"
-echo "   (empty values mean the key was not present in the JSON file)"
+# Jina
+export JINA_API_KEY="$(_kv JINA_API_KEY)"
 
-# -------------------------------------------------------------------------
-#  End of script
-# -------------------------------------------------------------------------
+echo "env loaded from kv store"

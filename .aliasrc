@@ -27,19 +27,36 @@ alias mv="mv -i"
 # work
 alias zj='zellij attach "$(basename $(dirname $PWD))-$(basename $PWD)" 2>/dev/null || zellij --session "$(basename $(dirname $PWD))-$(basename $PWD)"'
 
-# kv secrets — only load if session is still valid
+# kv secrets — only load if kv is available and session is valid (non-interactive, never blocks)
 _kv_load_env() {
     local keys=(
+        ANTHROPIC_API_KEY
+        OPENAI_API_KEY
         OPENROUTER_API_KEY
-        # add more kv keys here as needed
+        GEMINI_API_KEY
+        CEREBRAS_API_KEY
+        HF_TOKEN
+        VERTEXAI_PROJECT
+        VERTEXAI_LOCATION
+        GROQ_API_KEY
+        AWS_ACCESS_KEY_ID
+        AWS_SECRET_ACCESS_KEY
+        AWS_REGION
+        AWS_PROFILE
+        AWS_BEARER_TOKEN_BEDROCK
+        AZURE_OPENAI_API_ENDPOINT
+        AZURE_OPENAI_API_KEY
+        AZURE_OPENAI_API_VERSION
+        JINA_API_KEY
     )
     for key in "${keys[@]}"; do
         local val
-        val="$(kv get "$key" 2>/dev/null)" && export "$key=$val"
+        val="$(kv get "$key" </dev/null 2>/dev/null)" && [[ -n "$val" ]] && export "$key=$val"
     done
 }
 
-if command -v kv &>/dev/null && kv session check 2>/dev/null; then
+# stdin redirected to /dev/null so kv can never block waiting for user input
+if command -v kv &>/dev/null && kv session check </dev/null 2>/dev/null; then
     _kv_load_env
 fi
 
