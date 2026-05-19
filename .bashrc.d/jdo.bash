@@ -15,33 +15,43 @@ jdo() {
         prompt=$(cat)
     fi
 
-    # Available tools
-    tools_list=(
+    # Preselected tools (always included by default)
+    local -a preselected_tools=(
         "Read"
         "Edit"
         "Write"
         "Bash"
-        "LSP"
-        "Agent"
         "WebFetch"
         "WebSearch"
-        "Skill"
         "TaskCreate"
         "TaskUpdate"
         "TaskList"
         "TaskGet"
+        "TaskStop"
+        "TaskOutput"
     )
 
-    # FZF multi-select for tools
-    selected_tools=$(printf '%s\n' "${tools_list[@]}" | fzf -m --preview="echo 'Selected tools will be allowed for this session'")
+    # Additional available tools
+    local -a additional_tools=(
+        "LSP"
+        "Agent"
+        "Skill"
+    )
 
-    if [[ -z "$selected_tools" ]]; then
-        echo "Error: No tools selected" >&2
-        return 1
+    local selected_tools
+    # FZF multi-select for additional tools
+    echo "📌 Preselected tools: $(printf '%s, ' "${preselected_tools[@]}" | sed 's/, $//')"
+    echo ""
+    echo "Select additional tools (or press ESC to skip):"
+    local additional=$(printf '%s\n' "${additional_tools[@]}" | fzf -m --preview="echo 'Choose optional tools to add'")
+
+    # Combine preselected + additional
+    if [[ -n "$additional" ]]; then
+        selected_tools=$(printf '%s\n' "${preselected_tools[@]}" "$additional")
+        selected_tools=$(echo "$selected_tools" | tr '\n' ',' | sed 's/,$//')
+    else
+        selected_tools=$(printf '%s\n' "${preselected_tools[@]}" | tr '\n' ',' | sed 's/,$//')
     fi
-
-    # Convert newline-separated tools to comma-separated
-    selected_tools=$(echo "$selected_tools" | tr '\n' ',' | sed 's/,$//')
 
     # Combine stdin with prompt if stdin exists
     if [[ -n "$stdin_input" ]]; then
