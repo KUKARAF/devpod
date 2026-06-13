@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 alias gr="git rev-parse --show-toplevel"
 
 # Git
@@ -55,9 +56,13 @@ _kv_load_env() {
     done
 }
 
-# stdin redirected to /dev/null so kv can never block waiting for user input
-if command -v kv &>/dev/null && kv session check </dev/null 2>/dev/null; then
-    _kv_load_env
+if command -v kv &>/dev/null; then
+    if kv session check 2>/dev/null; then
+        _kv_load_env
+    elif [[ $- == *i* ]]; then
+        # Interactive shell, no valid session — use device auth flow
+        kv session request && _kv_load_env
+    fi
 fi
 
 load_env() {
@@ -66,8 +71,7 @@ load_env() {
         return 1
     fi
     if ! kv session check 2>/dev/null; then
-        echo "kv session expired — renew token first (update ~/.config/kv/config.toml)" >&2
-        return 1
+        kv session request || return 1
     fi
     _kv_load_env
     echo "env loaded"
