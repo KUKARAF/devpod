@@ -68,5 +68,6 @@ modules:
     no-cache: true
     scripts:
       - install-vim-plugins.sh
+      - install-zellij.sh
 
   - type: signing
