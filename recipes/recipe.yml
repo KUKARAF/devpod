@@ -4,9 +4,12 @@
 name: devpod
 description: Personal Fedora Silverblue image.
 
+labels:
+  ostree.bootable: "true"
+
 # the base image to build on top of (FROM) and the version tag to use
 base-image: ghcr.io/ublue-os/silverblue-main
-image-version: 42
+image-version: 43
 
 # module configuration, executed in order
 modules:
@@ -23,15 +26,24 @@ modules:
     install:
       - dconf-update-service
 
+  - type: rpm-ostree
+    repos:
+      - https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+      - https://cli.github.com/packages/rpm/gh-cli.repo
+    install:
+      - tailscale
+      - gh
+      - stow
+      - btop
+      - syncthing
+      - fzf
+      - steam-devices
+      - uv
+
   - type: default-flatpaks
     configurations:
-      - notify: true
-        scope: system
+      - scope: system
         install:
-          - org.mozilla.firefox
-      - scope: user
-        install:
-          # flathub
           - io.github.v81d.Wattage
           - com.ranfdev.DistroShelf
           - md.obsidian.Obsidian
@@ -46,11 +58,15 @@ modules:
           - com.github.xournalpp.xournalpp
           - org.localsend.localsend_app
           - de.haeckerfelix.Fragments
-          # fedora
           - org.keepassxc.KeePassXC
 
   - type: systemd
     system-units:
       - tailscaled.service
+
+  - type: script
+    no-cache: true
+    scripts:
+      - install-vim-plugins.sh
 
   - type: signing
