@@ -49,4 +49,8 @@ modules:
           # fedora
           - org.keepassxc.KeePassXC
 
+  - type: systemd
+    system-units:
+      - tailscaled.service
+
   - type: signing

@@ -32,3 +32,4 @@ backup_data/
 
 # Session-specific
 .tools/resume_claude.sh
+/.bluebuild-scripts_*

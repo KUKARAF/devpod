@@ -1,0 +1,15 @@
+[Unit]
+Description=Tailscale VPN daemon
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/tailscaled --tun=auto --port=41641
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
