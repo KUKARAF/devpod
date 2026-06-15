@@ -1,0 +1,91 @@
+#!/bin/bash
+
+python3 - << 'PYEOF'
+import sys
+import ast
+import subprocess
+
+
+def get_staged_source(filepath):
+    result = subprocess.run(
+        ['git', 'show', ':' + filepath],
+        capture_output=True, text=True
+    )
+    return result.stdout if result.returncode == 0 else None
+
+
+def check_file(filepath, source):
+    errors = []
+    try:
+        tree = ast.parse(source, filename=filepath)
+    except SyntaxError:
+        return errors
+
+    # Imports not at top of module (after any non-import, non-docstring statement)
+    seen_non_import = False
+    for node in tree.body:
+        is_module_docstring = (
+            not seen_non_import
+            and isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Constant)
+            and isinstance(node.value.value, str)
+        )
+        if is_module_docstring:
+            continue
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            if seen_non_import:
+                errors.append(f"{filepath}:{node.lineno}: import not at top of file")
+        else:
+            seen_non_import = True
+
+    # Imports inside function or class bodies
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            for child in ast.walk(node):
+                if isinstance(child, (ast.Import, ast.ImportFrom)):
+                    errors.append(
+                        f"{filepath}:{child.lineno}: import inside function/class body"
+                    )
+
+    # Broad exception catching
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ExceptHandler):
+            if node.type is None:
+                errors.append(
+                    f"{filepath}:{node.lineno}: bare 'except:' catches all exceptions"
+                )
+            elif isinstance(node.type, ast.Name) and node.type.id in ('Exception', 'BaseException'):
+                errors.append(
+                    f"{filepath}:{node.lineno}: 'except {node.type.id}' catches all exceptions — use a specific type"
+                )
+            elif isinstance(node.type, ast.Tuple):
+                broad = [
+                    e.id for e in node.type.elts
+                    if isinstance(e, ast.Name) and e.id in ('Exception', 'BaseException')
+                ]
+                if broad:
+                    errors.append(
+                        f"{filepath}:{node.lineno}: except clause includes {broad[0]} — use specific exception types"
+                    )
+
+    return errors
+
+
+result = subprocess.run(
+    ['git', 'diff', '--cached', '--name-only', '--diff-filter=ACM'],
+    capture_output=True, text=True
+)
+py_files = [f for f in result.stdout.splitlines() if f.endswith('.py')]
+
+all_errors = []
+for filepath in py_files:
+    source = get_staged_source(filepath)
+    if source is not None:
+        all_errors.extend(check_file(filepath, source))
+
+if all_errors:
+    print("pre-commit: Python violations found:", file=sys.stderr)
+    for error in all_errors:
+        print(f"  {error}", file=sys.stderr)
+    sys.exit(1)
+PYEOF

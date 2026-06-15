@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+msg_file="$1"
+msg=$(cat "$msg_file")
+
+# Strip comment lines before checking
+clean_msg=$(grep -v '^#' "$msg_file" || true)
+
+# Block co-authored-by Anthropic
+if echo "$clean_msg" | grep -qi 'co-authored-by:.*anthropic'; then
+    echo "error: commit blocked — remove Co-Authored-By: Anthropic line before committing" >&2
+    exit 1
+fi
+
+# Require single-line commit message (no non-empty second line)
+body=$(echo "$clean_msg" | sed -n '2,$p')
+if echo "$body" | grep -q '[^[:space:]]'; then
+    echo "error: commit message must be a single line (no body or trailers allowed)" >&2
+    exit 1
+fi
