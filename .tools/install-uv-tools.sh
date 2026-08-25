@@ -24,7 +24,6 @@ mkdir -p "$UV_TOOL_BIN_DIR"
 echo "==> Installing uv tools into $UV_TOOL_BIN_DIR ..."
 uv tool install aider-chat
 uv tool install posting
-uv tool install mistral-vibe
 uv tool install 'runprompt[all]' --from 'git+https://github.com/chr15m/runprompt' --with 'requests,icalendar,python-dateutil'
 uv tool install today --from 'git+https://github.com/KUKARAF/diary.git'
 uv tool install todo --from 'git+https://github.com/KUKARAF/todo.git'
