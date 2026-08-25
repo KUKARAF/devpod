@@ -30,7 +30,12 @@ modules:
     repos:
       - https://pkgs.tailscale.com/stable/fedora/tailscale.repo
       - https://cli.github.com/packages/rpm/gh-cli.repo
+      # Terra: ghostty is not packaged in Fedora
+      - https://github.com/terrapkg/subatomic-repos/raw/main/terra.repo
     install:
+      # GUI apps belong in the host image so they get host Mesa/OpenGL.
+      # Running ghostty from nix-in-toolbox fails to create an EGL display.
+      - ghostty
       - tailscale
       - gh
       - stow
