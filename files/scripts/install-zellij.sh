@@ -1,16 +1,43 @@
 #!/bin/bash
-set -e
+# Install zellij into the image from an upstream GitHub release.
+#
+# Pinned deliberately: this image rebuilds nightly from master, so tracking
+# "latest" would let zellij change with no commit behind it. Bump VERSION here
+# to upgrade, and the change shows up in git like everything else.
+#
+# The musl build is a static binary with no library dependencies, so the copy
+# in /usr/bin also runs inside the toolbox via /run/host/usr/bin. That is why
+# zellij is installed here rather than by home-manager: /nix does not exist on
+# the host, so a nix-installed zellij is unusable outside the toolbox.
+set -euo pipefail
 
-INSTALL_DIR="/usr/bin"  # /usr/local is a symlink into /var on ostree and is not shipped in the image
+VERSION="0.45.0"
+TARGET="x86_64-unknown-linux-musl"
+BASE="https://github.com/zellij-org/zellij/releases/download/v${VERSION}"
 
-echo "Fetching latest zellij release..."
-VERSION=$(curl -s https://api.github.com/repos/zellij-org/zellij/releases/latest | grep '"tag_name"' | cut -d'"' -f4 | sed 's/^v//')
-DOWNLOAD_URL="https://github.com/zellij-org/zellij/releases/download/v${VERSION}/zellij-x86_64-unknown-linux-musl.tar.gz"
+# /usr/local is a symlink into /var on ostree and is not shipped in the image.
+INSTALL_DIR="/usr/bin"
 
-echo "Installing zellij v${VERSION}..."
-cd /tmp
-curl -sL "$DOWNLOAD_URL" -o zellij.tar.gz
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+echo "==> Downloading zellij v${VERSION} (${TARGET})..."
+curl -fsSL "${BASE}/zellij-${TARGET}.tar.gz"    -o zellij.tar.gz
+curl -fsSL "${BASE}/zellij-${TARGET}.sha256sum" -o zellij.sha256sum
+
 tar xzf zellij.tar.gz
-install -m 755 zellij "$INSTALL_DIR/zellij"
-rm -f zellij.tar.gz zellij
-echo "Zellij v${VERSION} installed to $INSTALL_DIR/zellij"
+
+# Upstream checksums the extracted binary, not the tarball.
+expected="$(awk '{print $1}' zellij.sha256sum)"
+actual="$(sha256sum zellij | awk '{print $1}')"
+if [ "$expected" != "$actual" ]; then
+    echo "ERROR: zellij checksum mismatch" >&2
+    echo "  expected $expected" >&2
+    echo "  actual   $actual" >&2
+    exit 1
+fi
+echo "==> Checksum verified: ${actual}"
+
+install -m 755 zellij "${INSTALL_DIR}/zellij"
+echo "==> zellij v${VERSION} installed to ${INSTALL_DIR}/zellij"

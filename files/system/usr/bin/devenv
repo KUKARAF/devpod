@@ -27,6 +27,14 @@ stow -t ~ --adopt -d "$DOTFILES_DIR" .
 echo "==> Creating toolbox '$TOOLBOX_NAME'..."
 toolbox create --image "$TOOLBOX_IMAGE" "$TOOLBOX_NAME"
 
+# zellij lives in the host image, not in nix. It is a static musl binary, so
+# the host copy runs unmodified inside the container -- toolbox bind-mounts the
+# host root at /run/host, but does not put it on PATH. Symlink just this one
+# tool rather than exposing all of /run/host/usr/bin, which would shadow the
+# container's own binaries.
+echo "==> Linking host zellij into '$TOOLBOX_NAME'..."
+toolbox run --container "$TOOLBOX_NAME" sudo ln -sf /run/host/usr/bin/zellij /usr/local/bin/zellij
+
 echo "==> Running nix-toolbox setup inside '$TOOLBOX_NAME'..."
 toolbox run --container "$TOOLBOX_NAME" bash "$DOTFILES_DIR/.tools/nix-toolbox-setup.sh"
 
