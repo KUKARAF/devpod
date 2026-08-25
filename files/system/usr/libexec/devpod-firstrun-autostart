@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Launched once per user by /etc/xdg/autostart/devpod-firstrun.desktop.
-# Opens the app picker in a terminal on first login, then never again.
-# devpod-apps stays available manually afterwards.
+# Opens the setup menu in a terminal on first login, then never again.
+# 'devpod' stays available manually afterwards.
 set -euo pipefail
 
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/devpod"
@@ -12,11 +12,11 @@ SENTINEL="$STATE_DIR/firstrun-done"
 # Nothing to offer (e.g. everything is already installed)? Don't flash a
 # terminal, and don't burn the one-shot: leave the sentinel unwritten so a
 # later image with new apps in the catalogue can still prompt once.
-/usr/bin/devpod-apps --check || exit 0
+/usr/bin/devpod --check || exit 0
 
 # Write the sentinel up front: if the picker crashes or the window is closed,
 # we must not re-prompt on every login.
 mkdir -p "$STATE_DIR"
 date -Is > "$SENTINEL"
 
-exec ghostty -e /usr/bin/devpod-apps
+exec ghostty -e /usr/bin/devpod

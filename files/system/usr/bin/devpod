@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Usage: devpod [--check]
+# Setup menu for this image. Wraps the individual commands, which stay usable
+# on their own:
+#   devenv       set up / enter the nix development toolbox
+#   devpod-apps  pick flatpak applications to install
+#
+#   --check  exit 0 if any task is still outstanding, 1 if everything is done.
+#            Used by the first-login autostart so it never opens a terminal
+#            for a machine that has nothing left to do.
+set -euo pipefail
+
+CHECK_ONLY=0
+[ "${1:-}" = "--check" ] && CHECK_ONLY=1
+
+# Track the host's Fedora release rather than hardcoding it: the same image is
+# rebased onto machines that may be a release apart, and a toolbox whose
+# userspace lags the host is how the EGL/Mesa breakage started.
+os_version() { ( . /etc/os-release && echo "$VERSION_ID" ); }
+TOOLBOX_NAME="nix-toolbox-$(os_version)"
+
+toolbox_ready() {
+    toolbox list --containers 2>/dev/null | grep -q "[[:space:]]${TOOLBOX_NAME}[[:space:]]"
+}
+
+apps_available() {
+    devpod-apps --check >/dev/null 2>&1
+}
+
+if [ "$CHECK_ONLY" = 1 ]; then
+    if ! toolbox_ready || apps_available; then exit 0; fi
+    exit 1
+fi
+
+while true; do
+    if toolbox_ready; then
+        toolbox_label="Development toolbox      enter $TOOLBOX_NAME"
+    else
+        toolbox_label="Development toolbox      set up $TOOLBOX_NAME"
+    fi
+
+    if apps_available; then
+        apps_label="Applications             choose flatpaks to install"
+    else
+        apps_label="Applications             everything in the catalogue is installed"
+    fi
+
+    quit_label="Quit"
+
+    choice="$(gum choose \
+        --header "devpod setup  ($(os_version))" \
+        "$toolbox_label" \
+        "$apps_label" \
+        "$quit_label" || true)"
+
+    case "$choice" in
+        "Development toolbox"*)
+            echo
+            devenv || echo "==> Toolbox step exited non-zero; you can retry from this menu." >&2
+            echo
+            ;;
+        "Applications"*)
+            echo
+            devpod-apps || true
+            echo
+            ;;
+        *)
+            # Quit, Esc, or Ctrl-C
+            exit 0
+            ;;
+    esac
+done

@@ -3,8 +3,11 @@
 # If the nix-toolbox container exists, enter it. Otherwise, set it up first.
 set -euo pipefail
 
-TOOLBOX_NAME="nix-toolbox-43"
-TOOLBOX_IMAGE="ghcr.io/thrix/nix-toolbox:43"
+# Follow the host's Fedora release. Hardcoding it means a rebase to a newer
+# image leaves the toolbox a release behind, which is what broke Mesa/EGL.
+OS_VERSION="$( . /etc/os-release && echo "$VERSION_ID" )"
+TOOLBOX_NAME="nix-toolbox-${OS_VERSION}"
+TOOLBOX_IMAGE="ghcr.io/thrix/nix-toolbox:${OS_VERSION}"
 DOTFILES_REPO="https://github.com/KUKARAF/devpod.git"
 DOTFILES_DIR="$HOME/.config/dotfiles"
 
