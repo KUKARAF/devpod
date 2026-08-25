@@ -36,7 +36,9 @@ echo "==> Linking host zellij into '$TOOLBOX_NAME'..."
 toolbox run --container "$TOOLBOX_NAME" sudo ln -sf /run/host/usr/bin/zellij /usr/local/bin/zellij
 
 echo "==> Running nix-toolbox setup inside '$TOOLBOX_NAME'..."
-toolbox run --container "$TOOLBOX_NAME" bash "$DOTFILES_DIR/.tools/nix-toolbox-setup.sh"
+# -l: the setup script needs home-manager, which only lands on PATH once
+# /etc/profile.d/nix.sh has been sourced by a login shell.
+toolbox run --container "$TOOLBOX_NAME" bash -l "$DOTFILES_DIR/.tools/nix-toolbox-setup.sh"
 
 echo "==> Installing uv tools..."
 bash "$DOTFILES_DIR/.tools/install-uv-tools.sh"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Bootstrap script for nix-toolbox environment.
-# Run once after cloning and stowing dotfiles inside nix-toolbox-42.
+# Run by devenv inside the toolbox, after dotfiles are stowed on the host.
 set -e
 
 if [ ! -d /nix ]; then
@@ -13,10 +13,9 @@ if ! command -v home-manager &>/dev/null; then
     exit 1
 fi
 
-DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-
-echo "Stowing dotfiles from $DOTFILES_DIR..."
-stow -t ~ --adopt -d "$DOTFILES_DIR" .
+# Dotfiles are stowed on the host by devenv before this runs. $HOME is shared
+# with the container, so the symlinks are already visible here -- re-stowing
+# would just fail, since stow lives in the host image and not in the toolbox.
 
 echo "Applying home-manager configuration..."
 home-manager switch
