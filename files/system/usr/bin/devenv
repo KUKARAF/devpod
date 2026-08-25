@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Usage: devenv
+# If the nix-toolbox container exists, enter it. Otherwise, set it up first.
+set -euo pipefail
+
+TOOLBOX_NAME="nix-toolbox-43"
+TOOLBOX_IMAGE="ghcr.io/thrix/nix-toolbox:43"
+DOTFILES_REPO="https://github.com/KUKARAF/devpod.git"
+DOTFILES_DIR="$HOME/.config/dotfiles"
+
+if toolbox list --containers | grep -q "$TOOLBOX_NAME"; then
+    exec toolbox enter "$TOOLBOX_NAME"
+fi
+
+echo "==> Cloning dotfiles to host..."
+if [ ! -d "$DOTFILES_DIR" ]; then
+    git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
+else
+    git -C "$DOTFILES_DIR" pull --ff-only || true
+fi
+echo "==> Stowing dotfiles on host..."
+stow -t ~ --adopt -d "$DOTFILES_DIR" .
+
+echo "==> Creating toolbox '$TOOLBOX_NAME'..."
+toolbox create --image "$TOOLBOX_IMAGE" "$TOOLBOX_NAME"
+
+echo "==> Running nix-toolbox setup inside '$TOOLBOX_NAME'..."
+toolbox run --container "$TOOLBOX_NAME" bash "$DOTFILES_DIR/.tools/nix-toolbox-setup.sh"
+
+echo "==> Installing uv tools..."
+bash "$DOTFILES_DIR/.tools/install-uv-tools.sh"
+
+echo "==> Done! Run 'devenv' again to enter the toolbox."

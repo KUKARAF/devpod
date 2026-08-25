@@ -1,0 +1,61 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+# image will be published to ghcr.io/kukaraf/devpod
+name: devpod
+description: Personal Fedora Silverblue image.
+
+labels:
+  ostree.bootable: "true"
+
+# the base image to build on top of (FROM) and the version tag to use
+base-image: ghcr.io/ublue-os/silverblue-main
+image-version: 43
+
+# module configuration, executed in order
+modules:
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  - type: gschema-overrides
+    include:
+      - zz1-defaults.gschema.override
+
+  - type: bling
+    install:
+      - dconf-update-service
+
+  - type: rpm-ostree
+    repos:
+      - https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+      - https://cli.github.com/packages/rpm/gh-cli.repo
+      # Terra: ghostty is not packaged in Fedora
+      - https://github.com/terrapkg/subatomic-repos/raw/main/terra.repo
+    install:
+      # GUI apps belong in the host image so they get host Mesa/OpenGL.
+      # Running ghostty from nix-in-toolbox fails to create an EGL display.
+      - ghostty
+      - tailscale
+      - gh
+      - stow
+      - btop
+      - syncthing
+      - fzf
+      - steam-devices
+      - uv
+      # gum powers the devpod-apps first-login picker
+      - gum
+
+  - type: systemd
+    system:
+      enabled:
+        - tailscaled.service
+
+  - type: script
+    no-cache: true
+    scripts:
+      - install-vim-plugins.sh
+      - install-zellij.sh
+
+  - type: signing
