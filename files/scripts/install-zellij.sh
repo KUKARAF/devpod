@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-INSTALL_DIR="/usr/local/bin"
+INSTALL_DIR="/usr/bin"  # /usr/local is a symlink into /var on ostree and is not shipped in the image
 
 echo "Fetching latest zellij release..."
 VERSION=$(curl -s https://api.github.com/repos/zellij-org/zellij/releases/latest | grep '"tag_name"' | cut -d'"' -f4 | sed 's/^v//')
