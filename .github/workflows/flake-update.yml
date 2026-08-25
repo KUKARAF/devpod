@@ -20,7 +20,7 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
-      - uses: DeterminateSystems/update-flake-lock@v24
+      - uses: DeterminateSystems/update-flake-lock@v28
         with:
           path-to-flake-dir: '.config/home-manager'
           pr-title: 'chore: update flake.lock'
