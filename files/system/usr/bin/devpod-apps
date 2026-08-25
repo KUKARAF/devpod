@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
-# Usage: devpod-apps
+# Usage: devpod-apps [--check]
 # Interactive flatpak picker. Safe to re-run at any time; already-installed
 # apps are skipped. Installs to --user scope so no root/polkit prompt appears.
+#   --check  exit 0 if there is something to offer, 1 if not. Used by the
+#            autostart wrapper so it never opens a terminal for nothing.
 set -euo pipefail
+
+CHECK_ONLY=0
+[ "${1:-}" = "--check" ] && CHECK_ONLY=1
 
 CATALOGUE="/usr/share/devpod/flatpaks.tsv"
 FLATHUB_URL="https://dl.flathub.org/repo/flathub.flatpakrepo"
 
 [ -r "$CATALOGUE" ] || { echo "No catalogue at $CATALOGUE" >&2; exit 1; }
-
-echo "==> Checking flathub remote..."
-flatpak remote-add --user --if-not-exists flathub "$FLATHUB_URL"
 
 # Apps already present in either scope; offering these again just wastes time.
 installed="$(flatpak list --app --columns=application 2>/dev/null || true)"
@@ -37,13 +39,19 @@ while IFS=$'\t' read -r id label size preselect; do
     [ "$preselect" = "yes" ] && preselected+=("$row")
 done < "$CATALOGUE"
 
-if [ "${#skipped[@]}" -gt 0 ]; then
-    echo "    Already installed: ${skipped[*]}"
-fi
-
 if [ "${#options[@]}" -eq 0 ]; then
+    [ "$CHECK_ONLY" = 1 ] && exit 1
+    if [ "${#skipped[@]}" -gt 0 ]; then
+        echo "    Already installed: ${skipped[*]}"
+    fi
     echo "==> Nothing left to install. Done."
     exit 0
+fi
+
+[ "$CHECK_ONLY" = 1 ] && exit 0
+
+if [ "${#skipped[@]}" -gt 0 ]; then
+    echo "    Already installed: ${skipped[*]}"
 fi
 
 selected_arg=()
@@ -63,6 +71,12 @@ if [ -z "$chosen" ]; then
     echo "==> Nothing selected. You can run 'devpod-apps' again any time."
     exit 0
 fi
+
+# Only now is a user-scope flathub remote worth creating. Adding it eagerly
+# makes gnome-software pull ~45 MB of appstream metadata, which stalls the
+# desktop at login on slower hardware.
+echo "==> Preparing flathub remote..."
+flatpak remote-add --user --if-not-exists flathub "$FLATHUB_URL"
 
 ok=()
 failed=()
