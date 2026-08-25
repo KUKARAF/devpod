@@ -9,6 +9,11 @@ SENTINEL="$STATE_DIR/firstrun-done"
 
 [ -e "$SENTINEL" ] && exit 0
 
+# Nothing to offer (e.g. everything is already installed)? Don't flash a
+# terminal, and don't burn the one-shot: leave the sentinel unwritten so a
+# later image with new apps in the catalogue can still prompt once.
+/usr/bin/devpod-apps --check || exit 0
+
 # Write the sentinel up front: if the picker crashes or the window is closed,
 # we must not re-prompt on every login.
 mkdir -p "$STATE_DIR"
