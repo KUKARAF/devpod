@@ -1,0 +1,19 @@
+# Flatpak catalogue offered by devpod-apps.
+# Fields, tab-separated: app-id, label, approx size, preselect (yes/no)
+# preselect=yes ticks the box by default; nothing is installed without confirming.
+
+md.obsidian.Obsidian	Obsidian	662 MB	no
+app.grayjay.Grayjay	Grayjay	633 MB	no
+io.mpv.Mpv	mpv	254 MB	no
+com.github.xournalpp.xournalpp	Xournal++	247 MB	no
+org.localsend.localsend_app	LocalSend	58 MB	no
+com.valvesoftware.Steam	Steam	53 MB	no
+org.keepassxc.KeePassXC	KeePassXC	51 MB	no
+com.rioterm.Rio	Rio terminal	37 MB	no
+it.mijorus.gearlever	Gear Lever	27 MB	no
+de.haeckerfelix.Fragments	Fragments	24 MB	no
+de.haeckerfelix.Shortwave	Shortwave	16 MB	no
+com.ranfdev.DistroShelf	DistroShelf	9 MB	no
+com.mattjakeman.ExtensionManager	Extension Manager	2 MB	no
+net.codelogistics.webapps	WebApps	1 MB	no
+io.github.v81d.Wattage	Wattage	1 MB	no

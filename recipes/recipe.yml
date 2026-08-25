@@ -44,26 +44,8 @@ modules:
       - fzf
       - steam-devices
       - uv
-
-  - type: default-flatpaks
-    configurations:
-      - scope: system
-        install:
-          - io.github.v81d.Wattage
-          - com.ranfdev.DistroShelf
-          - md.obsidian.Obsidian
-          - it.mijorus.gearlever
-          - app.grayjay.Grayjay
-          - net.codelogistics.webapps
-          - com.rioterm.Rio
-          - com.valvesoftware.Steam
-          - de.haeckerfelix.Shortwave
-          - com.mattjakeman.ExtensionManager
-          - io.mpv.Mpv
-          - com.github.xournalpp.xournalpp
-          - org.localsend.localsend_app
-          - de.haeckerfelix.Fragments
-          - org.keepassxc.KeePassXC
+      # gum powers the devpod-apps first-login picker
+      - gum
 
   - type: systemd
     system:

@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Usage: devpod-apps
+# Interactive flatpak picker. Safe to re-run at any time; already-installed
+# apps are skipped. Installs to --user scope so no root/polkit prompt appears.
+set -euo pipefail
+
+CATALOGUE="/usr/share/devpod/flatpaks.tsv"
+FLATHUB_URL="https://dl.flathub.org/repo/flathub.flatpakrepo"
+
+[ -r "$CATALOGUE" ] || { echo "No catalogue at $CATALOGUE" >&2; exit 1; }
+
+echo "==> Checking flathub remote..."
+flatpak remote-add --user --if-not-exists flathub "$FLATHUB_URL"
+
+# Apps already present in either scope; offering these again just wastes time.
+installed="$(flatpak list --app --columns=application 2>/dev/null || true)"
+
+# Build the picker rows. Keep a label -> id map so we can recover the id from
+# whatever gum hands back.
+declare -A id_of
+options=()
+preselected=()
+skipped=()
+
+while IFS=$'\t' read -r id label size preselect; do
+    case "$id" in ''|'#'*) continue ;; esac
+    [ -n "${preselect:-}" ] || continue
+
+    if grep -qxF "$id" <<<"$installed"; then
+        skipped+=("$label")
+        continue
+    fi
+
+    row="$(printf '%-22s %8s  %s' "$label" "$size" "$id")"
+    id_of["$row"]="$id"
+    options+=("$row")
+    [ "$preselect" = "yes" ] && preselected+=("$row")
+done < "$CATALOGUE"
+
+if [ "${#skipped[@]}" -gt 0 ]; then
+    echo "    Already installed: ${skipped[*]}"
+fi
+
+if [ "${#options[@]}" -eq 0 ]; then
+    echo "==> Nothing left to install. Done."
+    exit 0
+fi
+
+selected_arg=()
+if [ "${#preselected[@]}" -gt 0 ]; then
+    selected_arg=(--selected "$(IFS=,; echo "${preselected[*]}")")
+fi
+
+echo
+chosen="$(gum choose \
+    --no-limit \
+    --height 20 \
+    --header "Select apps to install  (space toggles, enter confirms, esc skips)" \
+    "${selected_arg[@]}" \
+    "${options[@]}" || true)"
+
+if [ -z "$chosen" ]; then
+    echo "==> Nothing selected. You can run 'devpod-apps' again any time."
+    exit 0
+fi
+
+ok=()
+failed=()
+while IFS= read -r row; do
+    [ -n "$row" ] || continue
+    id="${id_of[$row]}"
+    if gum spin --title "Installing $id ..." -- \
+            flatpak install --user -y --noninteractive flathub "$id"; then
+        ok+=("$id")
+        echo "    installed  $id"
+    else
+        failed+=("$id")
+        echo "    FAILED     $id" >&2
+    fi
+done <<<"$chosen"
+
+echo
+echo "==> Installed ${#ok[@]} app(s)."
+if [ "${#failed[@]}" -gt 0 ]; then
+    echo "==> Failed: ${failed[*]}" >&2
+    echo "    Retry with: devpod-apps"
+    exit 1
+fi
