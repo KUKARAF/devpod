@@ -47,6 +47,16 @@ modules:
       # gum powers the devpod-apps first-login picker
       - gum
 
+      # Carried over from the thinkpad's rpm-ostree layering. vim-enhanced,
+      # ncurses-term and fuse are already in the ublue base, so they are not
+      # repeated here. gvim is provided by vim-X11.
+      - chromium
+      - vim-X11
+      - inotify-tools
+      - ibus-speech-to-text
+      - android-tools
+      - waydroid
+
   - type: systemd
     system:
       enabled:
