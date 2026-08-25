@@ -4,8 +4,14 @@ After=graphical-session.target
 BindsTo=graphical-session.target
 
 [Service]
+# Start well after login. lan-mouse asks for the RemoteDesktop and InputCapture
+# portals, and those dialogs are silently cancelled if they appear while GNOME
+# is still starting -- which left the daemon running but unable to capture or
+# emulate anything. Nothing needs the mouse bridge in the first minute.
+ExecStartPre=/usr/bin/sleep 90
 ExecStart=/var/home/rafa/.local/bin/lan-mouse -d
 Restart=on-failure
+TimeoutStartSec=180
 
 [Install]
 WantedBy=graphical-session.target
