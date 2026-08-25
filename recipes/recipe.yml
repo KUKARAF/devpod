@@ -66,8 +66,9 @@ modules:
           - org.keepassxc.KeePassXC
 
   - type: systemd
-    system-units:
-      - tailscaled.service
+    system:
+      enabled:
+        - tailscaled.service
 
   - type: script
     no-cache: true
