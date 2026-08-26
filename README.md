@@ -14,15 +14,15 @@ This repository contains dotfiles and scripts for setting up a development envir
 
 ### 1. Prerequisites (Silverblue)
 
-For Fedora Silverblue, run the prerequisites installer:
+There is no prerequisites script any more. System packages come from the image
+itself -- rebase onto it and reboot:
 ```bash
-./.tools/silverblue_prerequisites_install.sh
+sudo rpm-ostree rebase ostree-unverified-registry:ghcr.io/kukaraf/devpod:latest
+systemctl reboot
 ```
 
-This installs:
-- `stow` (for dotfile management)
-- `btop` (system monitor)
-- `distrobox` (container management)
+`stow`, `btop`, `ghostty`, `zellij`, `kv` and the rest are declared in
+`recipes/recipe.yml` and built into the image by CI.
 
 ### 2. Main Installation
 
@@ -54,7 +54,6 @@ distrobox enter devpod
 
 ### Helper Scripts (`.tools/`)
 - `install.sh` - Main installation script
-- `silverblue_prerequisites_install.sh` - Silverblue prerequisites
 - `adopt.sh` - Adopt existing configurations
 - `start_syncthing.sh` - Syncthing startup helper
 

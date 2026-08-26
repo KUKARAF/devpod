@@ -9,16 +9,15 @@ if [ -d /nix ] && command -v home-manager &>/dev/null; then
     home-manager switch
 else
     echo "Standard install — flatpaks + python venv..."
-    python3 -c "
-import yaml, sys
-recipe = yaml.safe_load(open('recipes/recipe.yml'))
-for mod in recipe.get('modules', []):
-    if mod.get('type') == 'default-flatpaks':
-        for cfg in mod.get('configurations', []):
-            remote = cfg['repo']['name']
-            for pkg in cfg.get('install', []):
-                print(remote, pkg)
-" | xargs -L1 sh -c 'flatpak install -y "$0" "$1"'
+    # Flatpaks used to be read out of the recipe's default-flatpaks module.
+    # That module is gone: installing 2.2 GB of apps before login starved the
+    # desktop on first boot. The image now ships devpod-apps, an interactive
+    # picker, and the catalogue lives at /usr/share/devpod/flatpaks.tsv.
+    if command -v devpod-apps >/dev/null; then
+        devpod-apps
+    else
+        echo "  devpod-apps not found (not running the devpod image?); skipping flatpaks."
+    fi
     uv venv -p 3.11
     source .venv/bin/activate
     uv pip install -r requirements.txt
