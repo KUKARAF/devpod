@@ -67,5 +67,6 @@ modules:
     scripts:
       - install-vim-plugins.sh
       - install-zellij.sh
+      - install-kv.sh
 
   - type: signing
