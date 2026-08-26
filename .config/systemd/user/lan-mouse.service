@@ -9,7 +9,7 @@ BindsTo=graphical-session.target
 # is still starting -- which left the daemon running but unable to capture or
 # emulate anything. Nothing needs the mouse bridge in the first minute.
 ExecStartPre=/usr/bin/sleep 90
-ExecStart=/var/home/rafa/.local/bin/lan-mouse -d
+ExecStart=/usr/bin/lan-mouse -d
 Restart=on-failure
 TimeoutStartSec=180
 

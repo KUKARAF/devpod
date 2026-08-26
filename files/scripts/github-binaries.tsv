@@ -1,0 +1,23 @@
+# Binaries installed into the image straight from GitHub releases.
+#
+# Always tracks the latest release: the URL form used is
+#   https://github.com/<repo>/releases/latest/download/<asset>
+# which GitHub redirects to the current release, so no API call, no token and
+# no version pinning. The image rebuilds nightly, so new upstream releases land
+# the next morning.
+#
+# Columns, tab-separated:
+#   repo      owner/name on GitHub
+#   asset     release asset filename. A .tar.gz is extracted; anything else is
+#             treated as a bare binary.
+#   binaries  space-separated names to install into /usr/bin. For a bare-binary
+#             asset this is the name it gets installed as.
+#   checksum  "sha256sum" -> fetch <asset>.sha256sum and verify the extracted
+#             binary against it. "none" -> upstream publishes no checksum.
+#
+# Man pages (*.1) found in an extracted archive are installed automatically.
+
+#repo	asset	binaries	checksum
+zellij-org/zellij	zellij-x86_64-unknown-linux-musl.tar.gz	zellij	sha256sum
+KUKARAF/kv_cli	kv-linux-amd64.tar.gz	kv	none
+feschber/lan-mouse	lan-mouse-linux-x86_64	lan-mouse	none
