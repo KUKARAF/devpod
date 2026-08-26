@@ -1,0 +1,33 @@
+# Binaries installed into the image's root filesystem straight from GitHub
+# releases. One table per binary; the table name is the installed command.
+#
+#   repo      required. owner/name on GitHub.
+#   asset     required. Release asset filename. A .tar.gz/.tgz is extracted,
+#             anything else is treated as a bare binary. May contain {version},
+#             which is replaced with the resolved tag.
+#   version   optional, default "latest". Any release tag pins to that release
+#             instead, e.g. version = "v0.45.0".
+#   binaries  optional, default [table name]. Use when one archive ships
+#             several commands.
+#   checksum  optional, default "none". "sha256sum" fetches <asset>.sha256sum
+#             from the same release and verifies against it.
+#
+# Man pages (*.1) found in an extracted archive are installed automatically.
+
+[zellij]
+repo = "zellij-org/zellij"
+asset = "zellij-x86_64-unknown-linux-musl.tar.gz"
+version = "latest"
+checksum = "sha256sum"
+
+[kv]
+repo = "KUKARAF/kv_cli"
+asset = "kv-linux-amd64.tar.gz"
+version = "latest"
+
+# GUI app, so it belongs on the host rather than in the toolbox: it needs the
+# host's GTK4/libadwaita and the desktop portals for input capture.
+[lan-mouse]
+repo = "feschber/lan-mouse"
+asset = "lan-mouse-linux-x86_64"
+version = "latest"
