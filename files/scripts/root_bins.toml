@@ -10,7 +10,8 @@
 #   binaries  optional, default [table name]. Use when one archive ships
 #             several commands.
 #   checksum  optional, default "none". "sha256sum" fetches <asset>.sha256sum
-#             from the same release and verifies against it.
+#             and "sha256" fetches <asset>.sha256 from the same release, then
+#             verifies against it.
 #
 # Man pages (*.1) found in an extracted archive are installed automatically.
 
@@ -31,3 +32,12 @@ version = "latest"
 repo = "feschber/lan-mouse"
 asset = "lan-mouse-linux-x86_64"
 version = "latest"
+
+# MCP server that drives the desktop (AT-SPI accessibility tree, screenshots,
+# input). Belongs on the host for the same reason as lan-mouse: it needs the
+# live desktop session, portals, and input backends (ydotool/wtype/xdotool).
+[computer-use-linux]
+repo = "agent-sh/computer-use-linux"
+asset = "computer-use-linux-x86_64-unknown-linux-gnu"
+version = "latest"
+checksum = "sha256"

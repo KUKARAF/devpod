@@ -85,8 +85,10 @@ while IFS=$'\t' read -r name repo asset version checksum binaries; do
                 ;;
         esac
 
-        if [ "$checksum" = "sha256sum" ]; then
-            curl -fsSL "${base}/${asset_name%.tar.gz}.sha256sum" -o expected.sha256sum
+        if [ "$checksum" = "sha256sum" ] || [ "$checksum" = "sha256" ]; then
+            # The value doubles as the sidecar's extension: some projects ship
+            # <asset>.sha256sum, others <asset>.sha256. Both hold "<hash>  <file>".
+            curl -fsSL "${base}/${asset_name%.tar.gz}.${checksum}" -o expected.sha256sum
             expected="$(awk '{print $1}' expected.sha256sum)"
             for b in $binaries; do
                 actual="$(sha256sum "$b" | awk '{print $1}')"

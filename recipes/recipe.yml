@@ -57,6 +57,15 @@ modules:
       - android-tools
       - waydroid
 
+      # Runtime backends for computer-use-linux (installed from root_bins.toml).
+      # AT-SPI is already in the GNOME base and the window-targeting GNOME Shell
+      # extension ships inside the binary; these cover input + screenshots on
+      # Wayland: ydotool/ydotoold (uinput input fallback), wtype (Wayland text
+      # input), gnome-screenshot (background/portal-denied screenshot fallback).
+      - ydotool
+      - wtype
+      - gnome-screenshot
+
   - type: systemd
     system:
       enabled:
