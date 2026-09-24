@@ -1,4 +1,5 @@
 # .bashrc
+# shellcheck shell=bash
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
@@ -6,10 +7,10 @@ if [ -f /etc/bashrc ]; then
 fi
 
 # User specific environment
-if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
+if ! [[ "$PATH" == *"$HOME/.local/bin:$HOME/bin:"* ]]; then
     PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 fi
-if ! [[ "$PATH" =~ "$HOME/.runprompt/prompts" ]]; then
+if ! [[ "$PATH" == *"$HOME/.runprompt/prompts"* ]]; then
     PATH="$HOME/.runprompt/prompts:$PATH"
 fi
 export PATH
@@ -31,12 +32,14 @@ shopt -s checkwinsize
 if [ -d ~/.bashrc.d ]; then
     for rc in ~/.bashrc.d/*; do
         if [ -f "$rc" ]; then
+            # shellcheck source=/dev/null  # dynamic: every file in ~/.bashrc.d
             . "$rc"
         fi
     done
 fi
 unset rc
 
+# shellcheck source=SCRIPTDIR/.aliasrc
 [ -f ~/.aliasrc ] && . ~/.aliasrc
 
 export EDITOR="vim"
