@@ -1,7 +1,12 @@
 [org/gnome/settings-daemon/plugins/media-keys]
-custom-keybindings=['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']
+custom-keybindings=['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/']
 
 [org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0]
 name='Open Ghostty'
 command='ghostty'
 binding='<Super>t'
+
+[org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1]
+name='secondscreen capture'
+command='/var/home/rafa/dev/2nd_screen_server/python/.venv/bin/secondscreen trigger'
+binding='<Super><Alt>c'
