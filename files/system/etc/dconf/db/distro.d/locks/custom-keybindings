@@ -6,3 +6,6 @@
 /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name
 /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command
 /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding
+/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/name
+/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/command
+/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/binding
