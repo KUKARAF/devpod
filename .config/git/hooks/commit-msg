@@ -2,7 +2,6 @@
 set -euo pipefail
 
 msg_file="$1"
-msg=$(cat "$msg_file")
 
 # Strip comment lines before checking
 clean_msg=$(grep -v '^#' "$msg_file" || true)

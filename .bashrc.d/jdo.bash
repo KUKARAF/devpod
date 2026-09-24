@@ -1,6 +1,6 @@
 # Just Do - quick claude code execution with tool selection
 jdo() {
-    local stdin_input prompt selected_tools tools_list
+    local stdin_input prompt selected_tools
 
     # Read stdin if available
     if ! tty -s; then
@@ -9,7 +9,7 @@ jdo() {
 
     # Get prompt from argument or interactively
     if [[ $# -gt 0 ]]; then
-        prompt="$@"
+        prompt="$*"
     else
         echo "Enter your prompt (or Ctrl+D when done):"
         prompt=$(cat)
@@ -43,7 +43,8 @@ jdo() {
     echo "📌 Preselected tools: $(printf '%s, ' "${preselected_tools[@]}" | sed 's/, $//')"
     echo ""
     echo "Select additional tools (or press ESC to skip):"
-    local additional=$(printf '%s\n' "${additional_tools[@]}" | fzf -m --preview="echo 'Choose optional tools to add'")
+    local additional
+    additional=$(printf '%s\n' "${additional_tools[@]}" | fzf -m --preview="echo 'Choose optional tools to add'")
 
     # Combine preselected + additional
     if [[ -n "$additional" ]]; then
