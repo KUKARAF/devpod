@@ -59,25 +59,18 @@ function! ExecuteVisualSelection()
     call append(line_start - 1, split(output, "\n"))
 endfunction
 
-function! ExecutePythonSelection()
-    let [line_start, column_start] = getpos("'<")[1:2]
-    let [line_end, column_end] = getpos("'>")[1:2]
-    let lines = getline(line_start, line_end)
-    if len(lines) == 0
-        return
-    endif
-    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
-    let lines[0] = lines[0][column_start - 1:]
-    let selected_text = join(lines, "\n")
-    let output = system('python3 -c ' . shellescape(selected_text))
-    let output = substitute(output, '\n$', '', '')
-    call append(line_end, split(output, "\n"))
+function! ExecutePythonSelection() range
+    let code = join(getline(a:firstline, a:lastline), "\n")
+    let output = system('python3 -c ' . shellescape(code) . ' 2>&1')
+    botright new
+    setlocal buftype=nofile bufhidden=wipe noswapfile
+    call setline(1, split(output, "\n"))
 endfunction
 
 command! -nargs=? Vibe call VibeCommand(<f-args>)
 
 vnoremap <leader>e :<C-u>call ExecuteVisualSelection()<CR>
-vnoremap <leader>p :<C-u>call ExecutePythonSelection()<CR>
+vnoremap <leader>p :call ExecutePythonSelection()<CR>
 nnoremap <silent> <C-v> :vsplit \| :Yazi<cr>
 const g:yazi_exec_on_open = 'tabnew'
 nnoremap <silent> - :Yazi<cr>

@@ -13,6 +13,5 @@ requirements.txt
 Dockerfile
 fonts
 shell.nix
-.vimrc
 backup_data
 .gitignore
