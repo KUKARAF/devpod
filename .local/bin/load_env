@@ -44,5 +44,7 @@ _kv_export AZURE_OPENAI_API_ENDPOINT
 _kv_export AZURE_OPENAI_API_KEY
 _kv_export AZURE_OPENAI_API_VERSION
 _kv_export JINA_API_KEY
+_kv_export LITELLM_PROXY_API_KEY
+[[ -n "$LITELLM_PROXY_API_KEY" ]] && export LITELLM_API_KEY="$LITELLM_PROXY_API_KEY"
 
 echo "env loaded from kv store"

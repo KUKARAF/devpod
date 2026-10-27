@@ -28,6 +28,9 @@ alias mv="mv -i"
 # work
 alias zj='zellij attach "$(basename $(dirname $PWD))-$(basename $PWD)" 2>/dev/null || zellij --session "$(basename $(dirname $PWD))-$(basename $PWD)"'
 
+# Self-hosted LiteLLM proxy (not a secret; the key comes from kv below)
+export LITELLM_PROXY_API_BASE=https://litellm.osmosis.page
+
 # kv secrets — only load if kv is available and session is valid (non-interactive, never blocks)
 _kv_load_env() {
     local keys=(
@@ -49,11 +52,14 @@ _kv_load_env() {
         AZURE_OPENAI_API_KEY
         AZURE_OPENAI_API_VERSION
         JINA_API_KEY
+        LITELLM_PROXY_API_KEY
     )
     for key in "${keys[@]}"; do
         local val
         val="$(kv get "$key" </dev/null 2>/dev/null)" && [[ -n "$val" ]] && export "$key=$val"
     done
+    # pi's models.json reads $LITELLM_API_KEY; aider reads LITELLM_PROXY_API_KEY.
+    [[ -n "$LITELLM_PROXY_API_KEY" ]] && export LITELLM_API_KEY="$LITELLM_PROXY_API_KEY"
 }
 
 if command -v kv &>/dev/null; then
