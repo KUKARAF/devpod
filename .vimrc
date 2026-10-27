@@ -30,6 +30,43 @@ nnoremap <leader>l :bnext<CR>
 nnoremap <leader>r :e!<CR>
 nnoremap <leader><leader> :e!<CR>
 
+" ---- Aider in a zellij tab ---------------------------------------------
+" :Aider          pick open buffers with fzf (multi-select)
+" :Aider %        current file
+" :Aider b        all open buffers
+function! s:AiderFileBuffers() abort
+    return map(filter(range(1, bufnr('$')),
+                \ 'buflisted(v:val) && getbufvar(v:val, "&buftype") == "" && filereadable(bufname(v:val))'),
+                \ 'fnamemodify(bufname(v:val), ":p")')
+endfunction
+function! s:AiderOpen(files) abort
+    if empty(a:files)
+        echo 'Aider: no files to open'
+        return
+    endif
+    let aider = ['aider', '--watch-files'] + a:files
+    if empty($ZELLIJ)
+        " Not inside zellij: fall back to a vim terminal.
+        call term_start(aider, {'term_finish': 'close', 'exit_cb': {-> execute('checktime')}})
+        return
+    endif
+    call job_start(['zellij', 'action', 'new-tab', '--name', 'aider', '--cwd', getcwd(),
+                \ '--close-on-exit', '--'] + aider, {'in_io': 'null', 'out_io': 'null', 'err_io': 'null'})
+endfunction
+function! AiderCommand(...) abort
+    if a:0 == 0
+        call fzf#run(fzf#wrap({'source': s:AiderFileBuffers(), 'options': '--multi --reverse',
+                    \ 'sink*': {files -> s:AiderOpen(map(copy(files), 'fnamemodify(v:val, ":p")'))}}))
+    elseif a:1 == '%'
+        call s:AiderOpen([expand('%:p')])
+    elseif a:1 == 'b' || a:1 == 'buffers'
+        call s:AiderOpen(s:AiderFileBuffers())
+    else
+        echo "Aider: use no argument (fzf), '%' (current file) or 'b' (all buffers)"
+    endif
+endfunction
+command! -nargs=? Aider call AiderCommand(<f-args>)
+
 function! ExecuteVisualSelection()
     let [line_start, column_start] = getpos("'<")[1:2]
     let [line_end, column_end] = getpos("'>")[1:2]
@@ -59,7 +96,10 @@ endfunction
 " ---- AI helpers --------------------------------------------------------
 " :AI <question>        ask codestral via LiteLLM, answer in a split.
 " :'<,'>AI <question>   same, with the selected lines sent as context.
-" #AI<bang> <instr.>   (literally hash-AI-bang) write the file (:w) and pi edits it in the background.
+" Write a comment "#PI" or "#CLAUDE" followed by "!" plus an instruction, then
+" :w and that agent edits the file in the background. If both are present, the
+" first agent runs and the other one runs on the next :w. An "AI" + "!" comment
+" is left for aider (:Aider runs it with --watch-files).
 let g:ai_model = 'openrouter/mistralai/codestral-2508'
 let g:ai_pi_model = 'litellm-proxy/openrouter/mistralai/devstral-2512'
 
@@ -109,31 +149,46 @@ endfunction
 command! -range=0 -nargs=+ AI call AIAsk(<q-args>, <count>, <line1>, <line2>)
 
 " Split so this file itself never matches the marker.
-let s:ai_marker = '#AI' . '!'
-let s:ai_pattern = '#\s*AI' . '!'
+" Agent markers. Each name is split so this file never contains a live
+" marker (aider --watch-files would also react to an AI-bang comment here).
+let s:agents = {
+            \ 'PI': {name -> ['pi', '--print', '--no-session', '--model', g:ai_pi_model, name]},
+            \ 'CLAUDE': {name -> ['claude', '-p', '--permission-mode', 'acceptEdits',
+            \                     '--no-session-persistence', name]},
+            \ }
 let s:ai_jobs = {}
-function! s:AIPiOnWrite() abort
+function! s:AgentOnWrite() abort
     let file = expand('%:p')
-    if has_key(s:ai_jobs, file) || match(getline(1, '$'), s:ai_pattern) < 0
+    if has_key(s:ai_jobs, file)
         return
     endif
-    let prompt = 'In the file ' . file . ' there are lines containing the marker "' . s:ai_marker
-                \ . '" (possibly written as "# AI' . '!"). Each one is an instruction for you. Carry out every instruction, '
-                \ . 'then remove the marker lines (or the marker text) from the file.'
-    let s:ai_jobs[file] = job_start(['pi', '--print', '--no-session', '--model', g:ai_pi_model, prompt], {
-                \ 'cwd': expand('%:p:h'), 'in_io': 'null',
-                \ 'out_io': 'buffer', 'out_name': '[pi-log]', 'err_io': 'out', 'out_msg': 0,
-                \ 'exit_cb': {j, code -> s:AIPiDone(file, code)}})
-    echo 'AI: pi is working on ' . expand('%:t') . ' (log in buffer [pi-log])'
+    let lines = getline(1, '$')
+    for tag in ['PI', 'CLAUDE']
+        let marker = '#' . tag . '!'
+        if match(lines, '#\s*' . tag . '!') < 0
+            continue
+        endif
+        let prompt = 'In the file ' . file . ' there are lines containing the marker "' . marker
+                    \ . '" (possibly written as "# ' . tag . '!"). Each one is an instruction for you. '
+                    \ . 'Carry out every such instruction, then remove those marker lines (or the marker '
+                    \ . 'text) from the file. Ignore any other markers.'
+        let s:ai_jobs[file] = job_start(s:agents[tag](prompt), {
+                    \ 'cwd': expand('%:p:h'), 'in_io': 'null',
+                    \ 'out_io': 'buffer', 'out_name': '[agent-log]', 'err_io': 'out', 'out_msg': 0,
+                    \ 'exit_cb': {j, code -> s:AgentDone(file, tolower(tag), code)}})
+        echo 'AI: ' . tolower(tag) . ' is working on ' . expand('%:t') . ' (log in buffer [agent-log])'
+        return
+    endfor
 endfunction
-function! s:AIPiDone(file, code) abort
+function! s:AgentDone(file, agent, code) abort
     call remove(s:ai_jobs, a:file)
     checktime
-    echo 'AI: pi ' . (a:code == 0 ? 'finished ' : 'failed (exit ' . a:code . ', see :b [pi-log]) ') . fnamemodify(a:file, ':t')
+    echo 'AI: ' . a:agent . (a:code == 0 ? ' finished ' : ' failed (exit ' . a:code . ', see :b [agent-log]) ')
+                \ . fnamemodify(a:file, ':t')
 endfunction
-augroup ai_pi
+augroup ai_agents
     autocmd!
-    autocmd BufWritePost * call s:AIPiOnWrite()
+    autocmd BufWritePost * call s:AgentOnWrite()
 augroup END
 
 vnoremap <leader>e :<C-u>call ExecuteVisualSelection()<CR>
