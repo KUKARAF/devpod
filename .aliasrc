@@ -31,43 +31,90 @@ alias zj='zellij attach "$(basename $(dirname $PWD))-$(basename $PWD)" 2>/dev/nu
 # Self-hosted LiteLLM proxy (not a secret; the key comes from kv below)
 export LITELLM_PROXY_API_BASE=https://litellm.osmosis.page
 
-# kv secrets — only load if kv is available and session is valid (non-interactive, never blocks)
-_kv_load_env() {
-    local keys=(
-        ANTHROPIC_API_KEY
-        OPENAI_API_KEY
-        OPENROUTER_API_KEY
-        GEMINI_API_KEY
-        CEREBRAS_API_KEY
-        HF_TOKEN
-        VERTEXAI_PROJECT
-        VERTEXAI_LOCATION
-        GROQ_API_KEY
-        AWS_ACCESS_KEY_ID
-        AWS_SECRET_ACCESS_KEY
-        AWS_REGION
-        AWS_PROFILE
-        AWS_BEARER_TOKEN_BEDROCK
-        AZURE_OPENAI_API_ENDPOINT
-        AZURE_OPENAI_API_KEY
-        AZURE_OPENAI_API_VERSION
-        JINA_API_KEY
-        LITELLM_PROXY_API_KEY
-    )
-    for key in "${keys[@]}"; do
-        local val
-        val="$(kv get "$key" </dev/null 2>/dev/null)" && [[ -n "$val" ]] && export "$key=$val"
+# kv secrets — loaded from a tmpfs cache so shell startup never waits on kv; refreshed in the background
+_kv_keys=(
+    ANTHROPIC_API_KEY
+    OPENAI_API_KEY
+    GEMINI_API_KEY
+    CEREBRAS_API_KEY
+    HF_TOKEN
+    VERTEXAI_PROJECT
+    VERTEXAI_LOCATION
+    GROQ_API_KEY
+    AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY
+    AWS_REGION
+    AWS_PROFILE
+    AWS_BEARER_TOKEN_BEDROCK
+    AZURE_OPENAI_API_ENDPOINT
+    AZURE_OPENAI_API_VERSION
+    JINA_API_KEY
+    LITELLM_API_TOKEN
+    LITELLM_PROXY_API_KEY
+)
+_kv_cache="${XDG_RUNTIME_DIR:+$XDG_RUNTIME_DIR/kv-env}"
+
+# print `export` lines for every key, fetching them in parallel
+_kv_dump_env() {
+    local tmp key
+    tmp="$(mktemp -d)" || return 1
+    for key in "${_kv_keys[@]}"; do
+        {
+            local val
+            val="$(kv get "$key" </dev/null 2>/dev/null)" && [[ -n "$val" ]] && printf 'export %s=%q\n' "$key" "$val" >"$tmp/$key"
+        } &
     done
+    wait
+    cat "$tmp"/* 2>/dev/null
+    rm -rf "$tmp"
+}
+
+_kv_post() {
+    # aider reads AIDER_* env vars as its options; this keeps the LiteLLM token out of generic OPENAI_API_KEY
+    [[ -n "${LITELLM_API_TOKEN:-}" ]] && export AIDER_OPENAI_API_KEY="$LITELLM_API_TOKEN"
     # pi's models.json reads $LITELLM_API_KEY; aider reads LITELLM_PROXY_API_KEY.
-    [[ -n "$LITELLM_PROXY_API_KEY" ]] && export LITELLM_API_KEY="$LITELLM_PROXY_API_KEY"
+    [[ -n "${LITELLM_PROXY_API_KEY:-}" ]] && export LITELLM_API_KEY="$LITELLM_PROXY_API_KEY"
+}
+
+_kv_load_env() {
+    eval "$(_kv_dump_env)"
+    _kv_post
+}
+
+# write the cache atomically (0600); silent, no job-control noise
+_kv_refresh_cache() {
+    (
+        umask 077
+        kv session check 2>/dev/null || exit 0
+        _kv_dump_env >"$_kv_cache.$$"
+        # never replace a good cache with an empty one
+        [[ -s "$_kv_cache.$$" ]] && mv -f "$_kv_cache.$$" "$_kv_cache"
+        rm -f "$_kv_cache.$$"
+    ) &>/dev/null &
+    disown 2>/dev/null
+}
+
+# picks up the cache at the next prompt when it wasn't ready at startup, then turns itself off
+_kv_pickup() {
+    [[ -s "$_kv_cache" ]] || return 0
+    . "$_kv_cache"
+    _kv_post
+    _kv_pickup() { :; }
 }
 
 if command -v kv &>/dev/null; then
-    if kv session check 2>/dev/null; then
+    if [[ -n "$_kv_cache" ]]; then
+        if [[ -s "$_kv_cache" ]]; then
+            . "$_kv_cache"
+            _kv_post
+        elif [[ $- == *i* ]]; then
+            PROMPT_COMMAND="_kv_pickup${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+        fi
+        if [[ ! -s "$_kv_cache" || -n "$(find "$_kv_cache" -mmin +10 2>/dev/null)" ]]; then
+            _kv_refresh_cache
+        fi
+    elif kv session check 2>/dev/null; then
         _kv_load_env
-    elif [[ $- == *i* ]]; then
-        # Interactive shell, no valid session — use device auth flow
-        kv session request && _kv_load_env
     fi
 fi
 
@@ -80,5 +127,9 @@ load_env() {
         kv session request || return 1
     fi
     _kv_load_env
+    [[ -n "$_kv_cache" ]] && _kv_refresh_cache
     echo "env loaded"
 }
+
+# pi: only expose LiteLLM models (other providers show up whenever their API key is in the env)
+alias pi='env -u GROQ_API_KEY -u GEMINI_API_KEY -u CEREBRAS_API_KEY pi'
